@@ -1,7 +1,7 @@
-package com.project.first.controller;
+package com.example.first.controller;
 
-import com.project.first.dto.LiveYtDto;
-import com.project.first.service.LiveYtService;
+import com.example.first.dto.LiveYtDto;
+import com.example.first.service.LiveYtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

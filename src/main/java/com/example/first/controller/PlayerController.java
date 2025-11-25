@@ -1,8 +1,7 @@
-package com.project.first.controller;
+package com.example.first.controller;
 
-import com.project.first.entity.PlayerEntity;
-import com.project.first.repository.PlayerRepository;
-import com.project.first.service.PlayerService;
+import com.example.first.entity.PlayerEntity;
+import com.example.first.service.PlayerService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.project.first.entity;
+package com.example.first.entity;
 
 import jakarta.persistence.*;
 import java.util.List;

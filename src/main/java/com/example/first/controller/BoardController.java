@@ -1,6 +1,6 @@
-package com.project.first.controller;
+package com.example.first.controller;
 
-import com.project.first.repository.BoardRepository;
+import com.example.first.repository.BoardRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -1,7 +1,7 @@
-package com.project.first.service;
+package com.example.first.service;
 
-import com.project.first.entity.PlayerEntity;
-import com.project.first.repository.PlayerRepository;
+import com.example.first.entity.PlayerEntity;
+import com.example.first.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

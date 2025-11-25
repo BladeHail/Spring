@@ -1,8 +1,8 @@
-package com.project.first.service;
+package com.example.first.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.first.dto.LiveYtDto;
+import com.example.first.dto.LiveYtDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
