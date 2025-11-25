@@ -12,4 +12,5 @@ import lombok.Setter;
 public class LiveYtDto {
     private String title;
     private String video;
+    private String channelId;
 }
