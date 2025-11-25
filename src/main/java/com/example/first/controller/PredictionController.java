@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/predictions")
+@RequestMapping("/api/predictions")
 public class PredictionController {
 
     private final MatchService matchService;
