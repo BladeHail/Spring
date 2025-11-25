@@ -15,7 +15,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LiveYtController {
 
-    private LiveYtService liveYtService;
+    private final LiveYtService liveYtService;
+
+
 
     @GetMapping("/api/live-status")
     public Map<String, Object> checkLiveStatus() {
