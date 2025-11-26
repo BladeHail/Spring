@@ -11,6 +11,4 @@ public class BoardController {
     public BoardController(BoardRepository repository) {
         this.repository = repository;
     }
-
-
 }
