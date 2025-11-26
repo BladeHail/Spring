@@ -1,15 +1,18 @@
 package com.example.first.service;
 
+import com.example.first.config.LiveYtConfig;
 import com.example.first.dto.LiveYtDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(classes = {LiveYtService.class, LiveYtConfig.class,
+                RestTemplateAutoConfiguration.class})
 public class LiveYtServiceTest {
     @Autowired
     private LiveYtService liveYtService;
@@ -28,8 +31,9 @@ public class LiveYtServiceTest {
             } else {
                 for(LiveYtDto video:result){
                     System.out.println("채널 ID: " + video.getChannelId());
+                    System.out.println("채널: " + video.getChannelName());
                     System.out.println("제목: " + video.getTitle());
-                    System.out.println("영상 ID: " + video.getVideo());
+                    System.out.println("영상 ID: " + video.getVideoId());
                     System.out.println("-------------------------");
                 }
             }

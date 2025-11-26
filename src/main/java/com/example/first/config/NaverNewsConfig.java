@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
 public class NaverNewsConfig {
 
     @Bean
-    public RestTemplate restTemplate() {
+    public RestTemplate newsTemplate() {
         return new RestTemplate();
     }
 
