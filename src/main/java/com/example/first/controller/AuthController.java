@@ -7,10 +7,8 @@ import com.example.first.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,6 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+
+    //소셜로그인  엔드포인트 google
+    @GetMapping("/login/google")
+    public RedirectView redirectToGoogle() {
+        return new RedirectView("/oauth2/authorization/google");
+    }
+    //kakao 로그인 엔드포인트
+
+    @GetMapping("/login/kakao")
+    public RedirectView redirectToKakaoLogin() {
+        return new RedirectView("/oauth2/authorization/kakao");
+    }
 
     // POST /api/auth/register
     @PostMapping("/register")
