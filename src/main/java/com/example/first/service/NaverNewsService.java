@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class NaverNewsService {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate newsTemplate;
 
     //프로퍼티스에서 키 가져오기
     @Value("${naver.client.id}")
@@ -46,7 +46,7 @@ public class NaverNewsService {
                 .build();
 
         // 3. API 호출 및 응답 파싱
-        ResponseEntity<NaverNewsDto> response = restTemplate.exchange(req, NaverNewsDto.class);
+        ResponseEntity<NaverNewsDto> response = newsTemplate.exchange(req, NaverNewsDto.class);
 
         return response.getBody();
     }

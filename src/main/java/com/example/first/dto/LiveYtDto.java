@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LiveYtDto {
     private String title;
-    private String video;
+    private String videoId;
     private String channelId;
+    private String channelName;
 }
