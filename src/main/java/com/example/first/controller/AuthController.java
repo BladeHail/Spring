@@ -2,6 +2,7 @@ package com.example.first.controller;
 
 import com.example.first.dto.AuthRequest;
 import com.example.first.dto.AuthResponse;
+import com.example.first.dto.OAthClientInfo;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -60,5 +64,20 @@ public class AuthController {
                     HttpStatus.UNAUTHORIZED // 401 Unauthorized
             );
         }
+    }
+    @GetMapping("/client-info")
+    public List<OAthClientInfo> getClientInfo(){
+        List<OAthClientInfo> infoList = new ArrayList<>();
+        infoList.add(new  OAthClientInfo(
+                "google",
+                "254999034916-61o7vuis0demhdt8jrb1210d92r8o8nn.apps.googleusercontent.com",
+                "http://localhost:8080/api/auth/register"
+        ));
+        infoList.add(new  OAthClientInfo(
+                "kakao",
+                "454f615976d86f74a3fcaabb05dca4d0",
+                "http://localhost:8080/api/auth/register"
+        ));
+        return infoList;
     }
 }

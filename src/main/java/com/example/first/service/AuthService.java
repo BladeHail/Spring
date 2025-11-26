@@ -1,6 +1,7 @@
 package com.example.first.service;
 
 import com.example.first.dto.AuthRequest;
+import com.example.first.dto.OAthClientInfo;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
@@ -13,6 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
