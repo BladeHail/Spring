@@ -67,37 +67,35 @@ public class LiveYtService {
                         String title = item.path("snippet").path("title").asText();
                         String videoId = item.path("id").path("videoId").asText();
 
-                        String resChannelId = item.path("snippet").path("ChannelId").asText();
+                        String resChannelId = item.path("snippet").path("channelId").asText();
+
+                        // 디버깅용 로그: ID가 제대로 찍히는지 눈으로 확인하세요
+                        // log.info("채널ID 추출 확인: {}", resChannelId);
 
                         if (containsKeyword(title)) {
-                            // DTO에 채널 ID도 함께 저장
+                            // 리스트에 추가
                             foundVideos.add(new LiveYtDto(title, videoId, resChannelId));
                             log.info("채널[{}] 영상 발견: {}", resChannelId, title);
+
+                            // "이 채널에서는 1개 찾았으니 그만 찾고 다음 채널로 넘어가라"는 뜻
+                            break;
                         }
                     }
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 log.error("채널({}) 확인중 오류", channelId, e);
             }
         }
-        //채널별로 1개의 영상만 남기도록 필터링 (Stream 활용)
-        this.currentLiveVideos = foundVideos.stream()
-                .collect(Collectors.toMap(
-                        LiveYtDto::getChannelId, // Key: 채널 ID
-                        Function.identity(),     // Value: 영상 객체 자체
-                        (existing, replacement) -> existing // 중복 시 기존 영상 유지
-                        ))
-                .values()
-                .stream()
-                .collect(Collectors.toList());
+
+
+        this.currentLiveVideos = foundVideos;
 
         if (currentLiveVideos.isEmpty()) {
             log.info("현재 조건에 맞는 방송 없음");
         } else {
-            log.info("최종 업데이트: {}개의 영상 (채널별 중복 제거됨)", currentLiveVideos.size());
+            log.info("최종 업데이트: 총 {}개의 영상", currentLiveVideos.size());
         }
     }
-
     private boolean containsKeyword(String title) {
         for (String keyword : targetKeywords) {
             if (title.contains(keyword.trim())) return true;
