@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/boards")
 @RequiredArgsConstructor
@@ -45,8 +46,7 @@ public class BoardController {
     // 게시글 상세 조회 (조회수 증가)
     @GetMapping("/{id}")
     public BoardDto detail(@PathVariable Long id) {
-        BoardEntity entity = boardService.findById(id);
-        return toDto(entity);
+        return toDto(boardService.findById(id));
     }
 
     // 게시글 수정
@@ -58,8 +58,7 @@ public class BoardController {
                 request.getAuthor(),
                 request.getMedia()
         );
-        BoardEntity saved = boardService.update(id, updated);
-        return toDto(saved);
+        return toDto(boardService.update(id, updated));
     }
 
     // 게시글 삭제

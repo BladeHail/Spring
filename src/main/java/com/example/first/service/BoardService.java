@@ -35,7 +35,7 @@ public class BoardService {
 
     // 목록
     public List<BoardEntity> findAll() {
-        return boardRepository.findAll();
+        return boardRepository.findByDeletedFalse();
     }
 
     // 상세 + 조회수 증가
@@ -58,9 +58,12 @@ public class BoardService {
         return boardRepository.save(boardEntity);
     }
 
-    // 삭제
+    // 삭제 대신 숨김 플래그만 변경
     public void delete(Long id) {
-        boardRepository.deleteById(id);
+        BoardEntity board = boardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+        board.setDeleted(true);
+        boardRepository.save(board);
     }
 
     public List<BoardEntity> listByLatest() {

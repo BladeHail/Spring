@@ -10,6 +10,7 @@ import java.util.List;
 public interface BoardRepository extends JpaRepository<BoardEntity,Long> {
     List<BoardEntity> findAllByOrderByCreatedAtDesc();
     List<BoardEntity> findAllByOrderByViewsDesc();
+    List<BoardEntity> findByDeletedFalse();
     Page<BoardEntity> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrAuthorContainingIgnoreCase(
             String title, String content, String author, Pageable pageable
     );

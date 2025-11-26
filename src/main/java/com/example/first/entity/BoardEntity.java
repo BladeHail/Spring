@@ -31,6 +31,9 @@ public class BoardEntity {
     private String media;
 
     @Column(nullable = false)
+    private boolean deleted =  false;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
