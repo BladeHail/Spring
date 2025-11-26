@@ -18,14 +18,31 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
-    private String password; // 인코딩된 비밀번호
+    @Column
+    private String password;
 
-    // 역할(Role) 등 추가 정보는 필요에 따라 추가합니다.
+    @Column(unique = true)
+    private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider provider;
+
+    private String providerId;
+
+    private String profileImage;
 
     @Builder
-    public User(String username, String password) {
+    public User(String username, String password, String email, AuthProvider provider, String providerId, String profileImage) {
         this.username = username;
         this.password = password;
+        this.email = email;
+        this.provider = provider != null ? provider : AuthProvider.LOCAL;
+        this.providerId = providerId;
+        this.profileImage = profileImage;
+    }
+    public void updateOAuthInfo(String username, String profileImage) {
+        this.username = username;
+        this.profileImage = profileImage;
     }
 }
