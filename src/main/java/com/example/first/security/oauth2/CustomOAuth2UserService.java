@@ -29,6 +29,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if ("kakao".equals(registrationId)) {
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        }else if  ("google".equals(registrationId)) {
+            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
         }
         if (oAuth2UserInfo == null) {
             throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 Provider입니다.");
