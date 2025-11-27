@@ -1,6 +1,7 @@
 package com.example.first.service;
 
 import com.example.first.entity.BoardEntity;
+import com.example.first.exception.BoardNotFoundException;
 import com.example.first.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,20 +29,20 @@ public class BoardService {
 
     // 생성
     public BoardEntity create(BoardEntity boardEntity) {
-        boardEntity.setCreatedAt(now());
-        boardEntity.setUpdatedAt(now());
+        boardEntity.setCreatedAt(LocalDateTime.now());
+        boardEntity.setUpdatedAt(LocalDateTime.now());
         return boardRepository.save(boardEntity);
     }
 
     // 목록
     public List<BoardEntity> findAll() {
-        return boardRepository.findByDeletedFalse();
+        return boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     // 상세 + 조회수 증가
     public BoardEntity findById(Long id) {
         BoardEntity boardEntity = boardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+                .orElseThrow(BoardNotFoundException::new);
         boardEntity.setViews(boardEntity.getViews() + 1);
         return boardRepository.save(boardEntity);
     }
@@ -49,21 +50,16 @@ public class BoardService {
     // 수정
     public BoardEntity update(Long id, BoardEntity updated) {
         BoardEntity boardEntity = boardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+                .orElseThrow(BoardNotFoundException::new);
         boardEntity.setTitle(updated.getTitle());
         boardEntity.setContent(updated.getContent());
-        boardEntity.setAuthor(updated.getAuthor());
-        boardEntity.setMedia(updated.getMedia());
-        boardEntity.setUpdatedAt(now());
+        boardEntity.setUpdatedAt(LocalDateTime.now());
         return boardRepository.save(boardEntity);
     }
 
     // 삭제 대신 숨김 플래그만 변경
     public void delete(Long id) {
-        BoardEntity board = boardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
-        board.setDeleted(true);
-        boardRepository.save(board);
+        boardRepository.deleteById(id);
     }
 
     public List<BoardEntity> listByLatest() {

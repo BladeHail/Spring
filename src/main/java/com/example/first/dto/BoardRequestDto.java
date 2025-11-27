@@ -1,5 +1,6 @@
 package com.example.first.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -8,8 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class BoardRequestDto {
-    private String title;
-    private String content;
-    private String author;
-    private String media;
+    @NotBlank String title;
+    @NotBlank String content;
+    @NotBlank String author;
+    String media;
 }

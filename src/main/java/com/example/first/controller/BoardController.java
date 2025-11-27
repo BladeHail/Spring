@@ -4,7 +4,9 @@ import com.example.first.dto.BoardDto;
 import com.example.first.dto.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
 import com.example.first.service.BoardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
@@ -17,14 +19,14 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/boards")
+@RequestMapping("/api/boards")
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
 
     // 게시글 등록
     @PostMapping
-    public BoardDto create(@RequestBody BoardRequestDto request) {
+    public BoardDto create(@Valid @RequestBody BoardRequestDto request) {
         BoardEntity entity = new BoardEntity(
                 request.getTitle(),
                 request.getContent(),
