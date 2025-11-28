@@ -61,7 +61,7 @@ public class PredictionController {
     private Long getUserId(Authentication auth) {
         return 1L; // TODO: JWT 인증된 사용자로 교체 예정
     }
-}
+
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("로그인이 필요한 기능입니다.");
@@ -72,7 +72,6 @@ public class PredictionController {
             PrincipalDetails principalDetails = (PrincipalDetails) principal;
             return principalDetails.getUser().getId();
         }
-       throw new IllegalStateException("지원하지 않는 인증 방식이거나 사용자 정보를 찾을수 없습니다.");
+        throw new IllegalStateException("지원하지 않는 인증 방식이거나 사용자 정보를 찾을수 없습니다.");
     }
-
 }
