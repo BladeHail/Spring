@@ -1,5 +1,6 @@
 package com.example.first.repository;
 
+import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
@@ -7,4 +8,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     boolean existsByUsername(String username);
+
+    Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
+
+    Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

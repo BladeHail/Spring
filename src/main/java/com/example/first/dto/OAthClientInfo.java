@@ -7,11 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class LiveYtDto {
-    private String title;
-    private String videoId;
-    private String channelId;
-    private String channelName;
+@AllArgsConstructor
+public class OAthClientInfo {
+    private String provider;
+    private String clientId;
+    private String redirectUri;
 }
