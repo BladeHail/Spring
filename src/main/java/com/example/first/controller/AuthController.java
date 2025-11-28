@@ -58,7 +58,7 @@ public class AuthController {
     // GET /api/auth/login/google - 구글 로그인
     @GetMapping("/login/google")
     public void googleLogin(HttpServletResponse response) throws Exception {
-        response.sendRedirect("/oauth2/authorization/google");
+        response.sendRedirect(authService.getLoginDirection(AuthProvider.GOOGLE));
     }
     @GetMapping("/login/google/test")
     public String googleTestLogin(HttpServletResponse response) throws Exception {
