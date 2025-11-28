@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PredictionService {
+public class  PredictionService {
 
     private final PredictionRepository predictionRepository;
     private final MatchService matchService;
