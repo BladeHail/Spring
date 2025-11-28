@@ -3,6 +3,7 @@ package com.example.first.controller;
 import com.example.first.dto.AuthRequest;
 import com.example.first.dto.AuthResponse;
 import com.example.first.dto.OAthClientInfo;
+import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,7 +60,10 @@ public class AuthController {
     public void googleLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect("/oauth2/authorization/google");
     }
-
+    @GetMapping("/login/google/test")
+    public String googleTestLogin(HttpServletResponse response) throws Exception {
+        return authService.getLoginDirection(AuthProvider.GOOGLE);
+    }
     // GET /api/auth/login/kakao - 카카오 로그인
     @GetMapping("/login/kakao")
     public void kakaoLogin(HttpServletResponse response) throws Exception {
