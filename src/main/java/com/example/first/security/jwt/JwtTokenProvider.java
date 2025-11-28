@@ -31,25 +31,13 @@ public class JwtTokenProvider {
     }
 
     /** 토큰 생성 - Authentication 객체로부터 */
-    public String createToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expirationTime);
-
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public String createToken(String username) {
+    public String createToken(String username, Long tokenVersion) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("tokenVersion", tokenVersion)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -63,6 +51,16 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+
+    public Long getTokenVersionFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("tokenVersion", Long.class);
     }
 
     public boolean validateToken(String authToken) {

@@ -1,5 +1,6 @@
 package com.example.first.security.config;
 
+import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtAuthenticationFilter;
 import com.example.first.security.jwt.JwtTokenProvider;
 import com.example.first.security.oauth2.CustomOAuth2UserService;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final UserRepository userRepository;
 
 
     @Bean
@@ -38,13 +40,18 @@ public class SecurityConfig {
 
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+        return new JwtAuthenticationFilter(
+                jwtTokenProvider,
+                userDetailsService,
+                userRepository
+        );
     }
 
     @Bean
@@ -57,16 +64,16 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**","/login/oauth2/code/**","/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**",
+                                "/v3/api-docs/**","/login/oauth2/code/**","/oauth2/**").permitAll()
                         .anyRequest().authenticated())
 
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler))
-                // 4. JWT 필터 적용
-                // UsernamePasswordAuthenticationFilter 이전에 커스텀 JWT 필터를 삽입
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
