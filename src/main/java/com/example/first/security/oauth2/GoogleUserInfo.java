@@ -6,11 +6,13 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 @Getter
-@NoArgsConstructor
 public class GoogleUserInfo implements OAuth2UserInfo {
     private Map<String, Object> attributes;
 
     public GoogleUserInfo(Map<String, Object> attributes) {
+        if(attributes == null) {
+            throw new IllegalArgumentException("Google OAuth2 attributes cannot be null");
+        }
         this.attributes = attributes;
     }
     @Override
