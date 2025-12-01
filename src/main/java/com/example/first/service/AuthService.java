@@ -27,6 +27,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -183,7 +185,7 @@ public class AuthService {
         return response.getBody();
     }
 
-    private GoogleUserInfo getGoogleUserInfo(String accessToken) {
+    public GoogleUserInfo getGoogleUserInfo(String accessToken) {
 
         RestTemplate rest = new RestTemplate();
 
@@ -192,15 +194,16 @@ public class AuthService {
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
-        ResponseEntity<GoogleUserInfo> response = rest.exchange(
+        ResponseEntity<Map> response = rest.exchange(
                 "https://openidconnect.googleapis.com/v1/userinfo",
                 HttpMethod.GET,
                 request,
-                GoogleUserInfo.class
+                Map.class
         );
 
-        return response.getBody();
+        return new GoogleUserInfo(response.getBody());
     }
+
 
     // 누락된 메서드 추가
     private User createGoogleUser(GoogleUserInfo googleUser) {
