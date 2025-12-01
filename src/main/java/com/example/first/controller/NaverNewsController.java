@@ -13,7 +13,7 @@ public class NaverNewsController {
 
     // 복잡한 검색어 조합을 상수로 선언
     private static final String OLYMPIC_KEYWORD =
-            "패럴림픽 (국가대표 | 메달 | \"한국 신기록\" | \"대한민국 성적\" | 장소 | 참가인원 | 마스코트 | 일정) -올림픽대로 -공원 -아파트 -서울올림파크텔 -올림픽공원역 -올림픽홀 -연금";
+            "패럴림픽 (국가대표 | 메달 | \"한국 신기록\" | \"대한민국 성적\" | 장소 | 참가인원 | 마스코트 | 일정) -올림픽대로 -올림픽공원 -아파트 -서울올림파크텔 -올림픽공원역 -올림픽홀 -연금";
 
     @GetMapping("/api/news/olympic")
     public NaverNewsDto getNews() {

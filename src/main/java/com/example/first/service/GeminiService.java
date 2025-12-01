@@ -36,14 +36,13 @@ public class GeminiService {
                 .build();
 
         // [3] URL 강제 조립 (핵심)
-        // 스프링 빌더를 쓰지 않고, 문자열로 완벽한 주소를 만듭니다.
         String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
 
-        // 디버깅용 로그 (콘솔을 확인해보세요!)
+        // 디버깅용 로그 (콘솔을 확인)
         System.out.println("요청 URL: " + finalUrl);
 
         // [4] API 호출
-        // RestClient.create()를 써서 아주 깨끗한 클라이언트를 새로 만듭니다.
+        // RestClient.create()를 써서 아주 깨끗한 클라이언트를 새로 만듬
         RestClient tempClient = RestClient.create();
 
         GeminiDto.Response response = tempClient.post()

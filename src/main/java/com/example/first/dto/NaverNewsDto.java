@@ -11,6 +11,7 @@ public class NaverNewsDto {
 
     @Data
     public static class Item{
+        private String id;
         private String title;
         private String link;
         private String description;
