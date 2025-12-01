@@ -7,7 +7,7 @@ import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
 import com.example.first.security.oauth2.GoogleUserInfo;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.example.first.dto.GoogleTokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
