@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GeminiController {
     private final GeminiService geminiService;
 
-    @GetMapping("/gemini/summary")
+    @GetMapping("/api/gemini-summary")
     public String getNewSummary(@RequestParam("news") String newsBody){
         return geminiService.getSummary(newsBody);
     }
