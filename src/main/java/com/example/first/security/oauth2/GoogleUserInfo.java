@@ -1,7 +1,12 @@
 package com.example.first.security.oauth2;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.Map;
 
+@Getter
+@NoArgsConstructor
 public class GoogleUserInfo implements OAuth2UserInfo {
     private Map<String, Object> attributes;
 
