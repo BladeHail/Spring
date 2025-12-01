@@ -32,7 +32,7 @@ public class NaverNewsService {
         // 1. URI 생성 (쿼리 파라미터 인코딩 처리)
         URI uri = UriComponentsBuilder.fromHttpUrl(naverUrl)
                 .queryParam("query", keyword)
-                .queryParam("display", 3) //뉴스를 보여주는 위치에 따라 보여줄 뉴스 개수 변경
+                .queryParam("display", 5) //뉴스를 보여주는 위치에 따라 보여줄 뉴스 개수 변경
                 .queryParam("sort", "date") //최신순 정렬
                 .encode(StandardCharsets.UTF_8)
                 .build()
