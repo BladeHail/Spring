@@ -116,4 +116,12 @@ public class AuthController {
 
         return infoList;
     }
+    // Handle OAuth
+    @GetMapping("/oauth2/code/google")
+    public ResponseEntity<AuthResponse> googleCallback(
+            @RequestParam("code") String code
+    ) {
+        AuthResponse response = authService.handleGoogleCallback(code);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -1,12 +1,18 @@
 package com.example.first.service;
 
 import com.example.first.dto.AuthRequest;
+import com.example.first.dto.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
+import com.example.first.security.oauth2.GoogleUserInfo;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -25,6 +34,9 @@ public class AuthService {
 
     @Value("${oauth.google.redirect-uri}")
     private String googleRedirectUri;
+
+    @Value("${oauth.google.client-secret}")
+    private String googleClientSecret;
 
     @Value("${oauth.kakao.client-id}")
     private String kakaoClientId;
@@ -121,4 +133,68 @@ public class AuthService {
         url += "&scope=email";
         return url;
     }
+
+    //Handle OAuth
+    @Transactional
+    public AuthResponse handleGoogleCallback(String code) {
+
+        // 1. Google Token 서버로 code 교환
+        GoogleTokenResponse tokenResponse = getGoogleTokens(code);
+
+        // 2. access_token으로 userinfo 가져오기
+        GoogleUserInfo googleUser = getGoogleUserInfo(tokenResponse.getAccessToken());
+
+        // 3. local DB에서 회원 조회/생성
+        User user = userRepository.findByEmail(googleUser.getEmail())
+                .orElseGet(() -> createGoogleUser(googleUser));
+
+        // 4. JWT 발급
+        String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
+
+        return new AuthResponse(jwt, user.getUsername(), "OAuth 로그인 성공");
+    }
+    private GoogleTokenResponse getGoogleTokens(String code) {
+
+        RestTemplate rest = new RestTemplate();
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
+        params.add("redirect_uri", googleRedirectUri);
+        params.add("grant_type", "authorization_code");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<MultiValueMap<String, String>> request =
+                new HttpEntity<>(params, headers);
+
+        ResponseEntity<GoogleTokenResponse> response = rest.postForEntity(
+                "https://oauth2.googleapis.com/token",
+                request,
+                GoogleTokenResponse.class
+        );
+
+        return response.getBody();
+    }
+    private GoogleUserInfo getGoogleUserInfo(String accessToken) {
+
+        RestTemplate rest = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<GoogleUserInfo> response = rest.exchange(
+                "https://openidconnect.googleapis.com/v1/userinfo",
+                HttpMethod.GET,
+                request,
+                GoogleUserInfo.class
+        );
+
+        return response.getBody();
+    }
+
 }
