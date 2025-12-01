@@ -33,7 +33,7 @@ public class NaverNewsService {
         URI uri = UriComponentsBuilder.fromHttpUrl(naverUrl)
                 .queryParam("query", keyword)
                 .queryParam("display", 3) //뉴스를 보여주는 위치에 따라 보여줄 뉴스 개수 변경
-                .queryParam("sort", "date")//최신순 정렬
+                .queryParam("sort", "date") //최신순 정렬
                 .encode(StandardCharsets.UTF_8)
                 .build()
                 .toUri();
@@ -51,14 +51,15 @@ public class NaverNewsService {
 
         // 4. ID 생성 및 주입
         if (dto != null && dto.getItems() != null) {
+            int id = 0;
             // 뉴스 목록을 하나씩 꺼내서 확인
             for (NaverNewsDto.Item item : dto.getItems()) {
 
                 // 뉴스의 '링크(Link)'는 하나뿐이니 숫자로 변환(hashCode)해서 ID로 만듬
-                String generatedId = String.valueOf(item.getLink().hashCode());
-
+                //String generatedId = String.valueOf(item.getLink().hashCode());
                 // 만든 ID를 DTO에 집어넣기
-                item.setId(generatedId);
+                item.setId(id);
+                id++;
             }
         }
         // 5. ID가 포함된 결과 반환
