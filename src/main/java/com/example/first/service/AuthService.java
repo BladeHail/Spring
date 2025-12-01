@@ -28,6 +28,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -203,17 +204,16 @@ public class AuthService {
 
         return new GoogleUserInfo(response.getBody());
     }
-
-
     // 누락된 메서드 추가
     private User createGoogleUser(GoogleUserInfo googleUser) {
         User newUser = User.builder()
                 .username(googleUser.getEmail()) // 이메일을 username으로 사용
                 .email(googleUser.getEmail())
+                .password(passwordEncoder.encode((UUID.randomUUID().toString() + UUID.randomUUID().toString())))
                 .provider(AuthProvider.GOOGLE)
                 .providerId(googleUser.getSub()) // Google의 고유 ID
                 .build();
-
+                    //password is null
         User savedUser = userRepository.save(newUser);
         log.info("새로운 Google 사용자 생성: email={}, providerId={}",
                 googleUser.getEmail(), googleUser.getSub());
