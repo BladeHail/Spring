@@ -39,7 +39,7 @@ public class GeminiServiceTest {
     @Test
     void GeminiTest() {
         // [Step 1] 네이버 뉴스 검색 (예: "인공지능")
-        String keyword = "인공지능";
+        String keyword = "패럴림픽";
         System.out.println("1. 네이버 뉴스 검색 시작: 키워드 = " + keyword);
 
         NaverNewsDto newsDto = naverNewsService.searchNews(keyword);
