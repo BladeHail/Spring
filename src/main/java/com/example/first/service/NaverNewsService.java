@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -49,15 +50,24 @@ public class NaverNewsService {
         ResponseEntity<NaverNewsDto> response = newsTemplate.exchange(req, NaverNewsDto.class);
         NaverNewsDto dto = response.getBody(); // 응답 내용을 변수에 담기
 
-        // 4. ID 생성 및 주입
+        // 4. ID 생성 및 HTML 제거 후 주입
         if (dto != null && dto.getItems() != null) {
             int id = 0;
-            // 뉴스 목록을 하나씩 꺼내서 확인
+
             for (NaverNewsDto.Item item : dto.getItems()) {
 
-                // 뉴스의 '링크(Link)'는 하나뿐이니 숫자로 변환(hashCode)해서 ID로 만듬
-                //String generatedId = String.valueOf(item.getLink().hashCode());
-                // 만든 ID를 DTO에 집어넣기
+                // (1) HTML 태그 제거
+                String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
+                String cleanDesc = item.getDescription().replaceAll("<[^>]*>", "");
+
+                // (2) HTML 엔티티 디코딩
+                cleanTitle = StringEscapeUtils.unescapeHtml4(cleanTitle);
+                cleanDesc = StringEscapeUtils.unescapeHtml4(cleanDesc);
+
+                item.setTitle(cleanTitle);
+                item.setDescription(cleanDesc);
+
+                // (3) ID 주입
                 item.setId(id);
                 id++;
             }
