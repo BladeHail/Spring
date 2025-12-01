@@ -145,6 +145,7 @@ public class AuthService {
 
         // 2. access_token으로 userinfo 가져오기
         GoogleUserInfo googleUser = getGoogleUserInfo(tokenResponse.getAccessToken());
+        System.out.println(getGoogleUserInfo(tokenResponse.getAccessToken()).getAttributes());
 
         // 3. local DB에서 회원 조회/생성
         User user = userRepository.findByEmail(googleUser.getEmail())
