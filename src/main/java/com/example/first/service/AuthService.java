@@ -11,6 +11,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -153,6 +155,7 @@ public class AuthService {
 
         return new AuthResponse(jwt, user.getUsername(), "OAuth 로그인 성공");
     }
+
     private GoogleTokenResponse getGoogleTokens(String code) {
 
         RestTemplate rest = new RestTemplate();
@@ -178,6 +181,7 @@ public class AuthService {
 
         return response.getBody();
     }
+
     private GoogleUserInfo getGoogleUserInfo(String accessToken) {
 
         RestTemplate rest = new RestTemplate();
@@ -195,6 +199,22 @@ public class AuthService {
         );
 
         return response.getBody();
+    }
+
+    // 누락된 메서드 추가
+    private User createGoogleUser(GoogleUserInfo googleUser) {
+        User newUser = User.builder()
+                .username(googleUser.getEmail()) // 이메일을 username으로 사용
+                .email(googleUser.getEmail())
+                .provider(AuthProvider.GOOGLE)
+                .providerId(googleUser.getSub()) // Google의 고유 ID
+                .build();
+
+        User savedUser = userRepository.save(newUser);
+        log.info("새로운 Google 사용자 생성: email={}, providerId={}",
+                googleUser.getEmail(), googleUser.getSub());
+
+        return savedUser;
     }
 
 }
