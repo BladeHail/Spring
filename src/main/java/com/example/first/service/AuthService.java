@@ -17,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -262,8 +265,10 @@ public class AuthService {
     private String getKakaoAccessToken(String code) {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        rest.getMessageConverters().add(new FormHttpMessageConverter());
+        rest.getMessageConverters().forEach(c -> System.out.println(c.getClass()));
+        System.out.println("\n =========================================");
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", kakaoClientId);
@@ -273,13 +278,19 @@ public class AuthService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
-        ResponseEntity<Map> response = rest.exchange(
-                "https://kauth.kakao.com/oauth/token",
-                HttpMethod.POST,
-                request,
-                Map.class
-        );
-        return (String) response.getBody().get("access_token");
+        try {
+            ResponseEntity<Map> response = rest.exchange(
+                    "https://kauth.kakao.com/oauth/token",
+                    HttpMethod.POST,
+                    request,
+                    Map.class
+            );
+            return response.getBody().get("access_token").toString();
+        } catch (HttpClientErrorException e) {
+            System.out.println("Status: " + e.getStatusCode());
+            System.out.println("Response body: " + e.getResponseBodyAsString()+"\n===================");
+            throw e;
+        }
     }
 
     private KakaoUserInfo getKakaoUserInfo(String accessToken) {
