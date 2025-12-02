@@ -138,7 +138,6 @@ public class AuthService {
                 url = "https://nid.naver.com/oauth2.0/authorize?";
                 url += "client_id=" + naverClientId;
                 url += "&redirect_uri=" + naverRedirectUri;
-                url += "&response_type=code";
                 url += "&state=" + state;
                 break;
             case KAKAO:
