@@ -284,7 +284,7 @@ public class AuthService {
             return response.getBody().get("access_token").toString();
         } catch (HttpClientErrorException e) {
             System.out.println("Status: " + e.getStatusCode());
-            System.out.println("Response body: " + e.getResponseBodyAsString());
+            System.out.println("Response body: " + e.getResponseBodyAsString()+"\n===================");
             throw e;
         }
     }
