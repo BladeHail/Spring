@@ -125,4 +125,29 @@ public class AuthController {
 
         response.sendRedirect(redirectUrl);
     }
+    @GetMapping("/oauth2/code/kakao")
+    public void kakaoCallback(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ) throws Exception {
+        AuthResponse auth = authService.handleKakaoCallback(code);
+        String redirectUrl = "https://underminingly-semineutral-natacha.ngrok-free.dev/social"
+                + "?token=" + auth.getToken()
+                + "&username=" + auth.getUsername();
+
+        response.sendRedirect(redirectUrl);
+    }
+    @GetMapping("/oauth2/code/naver")
+    public void naverCallback(
+            @RequestParam("code") String code,
+            @RequestParam("state") String state,
+            HttpServletResponse response
+    ) throws Exception {
+        AuthResponse auth = authService.handleNaverCallback(code, state);
+        String redirectUrl = "https://underminingly-semineutral-natacha.ngrok-free.dev/social"
+                + "?token=" + auth.getToken()
+                + "&username=" + auth.getUsername();
+
+        response.sendRedirect(redirectUrl);
+    }
 }
