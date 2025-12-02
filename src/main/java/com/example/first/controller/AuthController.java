@@ -77,19 +77,15 @@ public class AuthController {
     public void googleLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect(authService.getLoginDirection(AuthProvider.GOOGLE));
     }
-    @GetMapping("/login/google/test")
-    public String googleTestLogin(HttpServletResponse response) throws Exception {
-        return authService.getLoginDirection(AuthProvider.GOOGLE);
-    }
     // GET /api/auth/login/kakao - 카카오 로그인
     @GetMapping("/login/kakao")
     public void kakaoLogin(HttpServletResponse response) throws Exception {
-        response.sendRedirect("/oauth2/authorization/kakao");
+        response.sendRedirect(authService.getLoginDirection(AuthProvider.KAKAO));
     }
 
     @GetMapping("/login/naver")
     public void naverLogin(HttpServletResponse response) throws Exception {
-        response.sendRedirect("/oauth2/authorization/naver");
+        response.sendRedirect(authService.getLoginDirection(AuthProvider.NAVER));
     }
 
     @GetMapping("/client-info")
