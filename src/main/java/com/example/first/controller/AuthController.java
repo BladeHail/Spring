@@ -114,10 +114,15 @@ public class AuthController {
     }
     // Handle OAuth
     @GetMapping("/oauth2/code/google")
-    public ResponseEntity<AuthResponse> googleCallback(
-            @RequestParam("code") String code
-    ) {
-        AuthResponse response = authService.handleGoogleCallback(code);
-        return ResponseEntity.ok(response);
+    public void googleCallback(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ) throws Exception {
+        AuthResponse auth = authService.handleGoogleCallback(code);
+        String redirectUrl = "https://underminingly-semineutral-natacha.ngrok-free.dev/social"
+                + "?token=" + auth.getToken()
+                + "&username=" + auth.getUsername();
+
+        response.sendRedirect(redirectUrl);
     }
 }
