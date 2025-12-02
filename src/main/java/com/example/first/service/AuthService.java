@@ -131,6 +131,7 @@ public class AuthService {
                 url = "https://accounts.google.com/o/oauth2/v2/auth?";
                 url += "client_id=" + googleClientId;
                 url += "&redirect_uri=" + googleRedirectUri;
+                url += "&scope=email";
                 break;
             case NAVER:
                 String state = new BigInteger(130, new SecureRandom()).toString();
@@ -139,18 +140,19 @@ public class AuthService {
                 url += "client_id=" + naverClientId;
                 url += "&redirect_uri=" + naverRedirectUri;
                 url += "&state=" + state;
+                url += "&scope=email";
                 break;
             case KAKAO:
                 url = "https://kauth.kakao.com/oauth/authorize?";
                 url += "client_id=" + kakaoClientId;
                 url += "&redirect_uri=" + kakaoRedirectUri;
+                url += "%scope=account_email";
                 break;
             default:
                 url = "";
                 break;
         }
         url += "&response_type=code";
-        url += "&scope=email";
         return url;
     }
 
