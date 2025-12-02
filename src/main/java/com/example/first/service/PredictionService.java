@@ -38,7 +38,7 @@ public class  PredictionService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         Match match = matchService.getMatchById(requestDto.getMatchId());
-
+        System.out.println("!!!!! 유저는 "+userId);
         // 검증
         if (!match.isPredictionOpen()) {
             throw new IllegalStateException("예측이 마감된 경기입니다.");
