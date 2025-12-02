@@ -39,13 +39,13 @@ public class PredictionController {
 
     @GetMapping("/my")
     public List<PredictionResponseDto> myPredictions(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         return predictionService.getUserPredictions(userId);
     }
 
     @GetMapping("/stats")
     public PredictionService.PredictionStats stats(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         return predictionService.getUserStats(userId);
     }
 
@@ -54,7 +54,7 @@ public class PredictionController {
             @RequestBody PredictionRequestDto dto,
             Authentication auth
     ) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         var prediction = predictionService.createPrediction(userId, dto);
         return PredictionResponseDto.fromEntity(prediction);
     }
