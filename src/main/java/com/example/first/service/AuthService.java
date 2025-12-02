@@ -26,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 import java.util.Map;
 import java.util.UUID;
@@ -125,10 +127,18 @@ public class AuthService {
                 url += "&redirect_uri=" + googleRedirectUri;
                 break;
             case NAVER:
-                url = "Naver";
+                String state = new BigInteger(130, new SecureRandom()).toString();
+
+                url = "https://nid.naver.com/oauth2.0/authorize?";
+                url += "client_id=" + naverClientId;
+                url += "&redirect_uri=" + naverRedirectUri;
+                url += "&response_type=code";
+                url += "&state=" + state;
                 break;
             case KAKAO:
-                url = "Kakao";
+                url = "https://kauth.kakao.com/oauth/authorize?";
+                url += "client_id=" + kakaoClientId;
+                url += "&redirect_uri=" + kakaoRedirectUri;
                 break;
             default:
                 url = "";
