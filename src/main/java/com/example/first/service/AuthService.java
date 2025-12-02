@@ -146,7 +146,7 @@ public class AuthService {
                 url = "https://kauth.kakao.com/oauth/authorize?";
                 url += "client_id=" + kakaoClientId;
                 url += "&redirect_uri=" + kakaoRedirectUri;
-                url += "%scope=account_email";
+                url += "&scope=account_email";
                 break;
             default:
                 url = "";
