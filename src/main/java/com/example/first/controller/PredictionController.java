@@ -28,6 +28,7 @@ public class PredictionController {
     @GetMapping("/matches")
     public List<MatchDto> getMatches(Authentication auth) {
         Long userId = getUserId(auth);
+        System.out.println("유저는 "+userId+" 입니다");
         return matchService.getPredictableMatches().stream()
                 .map(match -> MatchDto.fromEntity(
                         match,
