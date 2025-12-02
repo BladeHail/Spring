@@ -18,6 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -261,6 +262,7 @@ public class AuthService {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        rest.getMessageConverters().add(new FormHttpMessageConverter());
         rest.getMessageConverters().forEach(c -> System.out.println(c.getClass()));
         System.out.println("\n =========================================");
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
