@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -273,13 +274,19 @@ public class AuthService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
-        ResponseEntity<Map> response = rest.exchange(
-                "https://kauth.kakao.com/oauth/token",
-                HttpMethod.POST,
-                request,
-                Map.class
-        );
-        return (String) response.getBody().get("access_token");
+        try {
+            ResponseEntity<Map> response = rest.exchange(
+                    "https://kauth.kakao.com/oauth/token",
+                    HttpMethod.POST,
+                    request,
+                    Map.class
+            );
+            return response.getBody().get("access_token").toString();
+        } catch (HttpClientErrorException e) {
+            System.out.println("Status: " + e.getStatusCode());
+            System.out.println("Response body: " + e.getResponseBodyAsString());
+            throw e;
+        }
     }
 
     private KakaoUserInfo getKakaoUserInfo(String accessToken) {
