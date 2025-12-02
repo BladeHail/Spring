@@ -259,9 +259,8 @@ public class AuthService {
 
     private String getKakaoAccessToken(String code) {
         RestTemplate rest = new RestTemplate();
-        rest.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
