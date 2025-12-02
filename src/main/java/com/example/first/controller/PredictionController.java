@@ -28,7 +28,6 @@ public class PredictionController {
     @GetMapping("/matches")
     public List<MatchDto> getMatches(Authentication auth) {
         Long userId = getCurrentUserId(auth);
-        System.out.println("유저는 "+userId+" 입니다");
         return matchService.getPredictableMatches().stream()
                 .map(match -> MatchDto.fromEntity(
                         match,
@@ -59,9 +58,6 @@ public class PredictionController {
         return PredictionResponseDto.fromEntity(prediction);
     }
 
-    private Long getUserId(Authentication auth) {
-        return 1L; // TODO: JWT 인증된 사용자 ID로 교체 예정
-    }
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("로그인이 필요한 기능입니다.");
