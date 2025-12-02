@@ -27,7 +27,7 @@ public class PredictionController {
 
     @GetMapping("/matches")
     public List<MatchDto> getMatches(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         System.out.println("유저는 "+userId+" 입니다");
         return matchService.getPredictableMatches().stream()
                 .map(match -> MatchDto.fromEntity(
@@ -60,7 +60,7 @@ public class PredictionController {
     }
 
     private Long getUserId(Authentication auth) {
-        return 1L; // TODO: JWT 인증된 사용자로 교체 예정
+        return 1L; // TODO: JWT 인증된 사용자 ID로 교체 예정
     }
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
