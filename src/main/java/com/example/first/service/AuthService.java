@@ -8,6 +8,8 @@ import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
 import com.example.first.security.oauth2.GoogleUserInfo;
 import com.example.first.dto.GoogleTokenResponse;
+import com.example.first.security.oauth2.KakaoUserInfo;
+import com.example.first.security.oauth2.NaverUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -54,8 +56,12 @@ public class AuthService {
     @Value("${oauth.naver.client-id}")
     private String naverClientId;
 
+    @Value("${oauth.naver.client-secret}")
+    private String naverClientSecret;
+
     @Value("${oauth.naver.redirect-uri}")
     private String naverRedirectUri;
+
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -170,6 +176,7 @@ public class AuthService {
         return new AuthResponse(jwt, user.getUsername(), "OAuth 로그인 성공");
     }
 
+
     private GoogleTokenResponse getGoogleTokens(String code) {
 
         RestTemplate rest = new RestTemplate();
@@ -230,5 +237,135 @@ public class AuthService {
 
         return savedUser;
     }
+    @Transactional
+    public AuthResponse handleKakaoCallback(String code) {
+        // 1. 카카오 토큰 발급
+        String accessToken = getKakaoAccessToken(code);
 
+        // 2. 카카오 유저 정보 조회
+        KakaoUserInfo kakaoUser = getKakaoUserInfo(accessToken);
+
+        // 3. DB 조회 및 회원가입
+        User user = userRepository.findByProviderAndProviderId(AuthProvider.KAKAO, kakaoUser.getProviderId())
+                .orElseGet(() -> createKakaoUser(kakaoUser));
+
+        // 4. JWT 발급
+        String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
+
+        return new AuthResponse(jwt, user.getUsername(), "Kakao 로그인 성공");
+    }
+
+    private String getKakaoAccessToken(String code) {
+        RestTemplate rest = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", kakaoClientId);
+        params.add("redirect_uri", kakaoRedirectUri);
+        params.add("code", code);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<Map> response = rest.exchange(
+                "https://kauth.kakao.com/oauth/token",
+                HttpMethod.POST,
+                request,
+                Map.class
+        );
+        return (String) response.getBody().get("access_token");
+    }
+
+    private KakaoUserInfo getKakaoUserInfo(String accessToken) {
+        RestTemplate rest = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> response = rest.exchange(
+                "https://kapi.kakao.com/v2/user/me",
+                HttpMethod.GET,
+                request,
+                Map.class
+        );
+        return new KakaoUserInfo(response.getBody());
+    }
+
+    private User createKakaoUser(KakaoUserInfo kakaoUser) {
+        User newUser = User.builder()
+                .username("kakao_" + kakaoUser.getProviderId())
+                .email(kakaoUser.getEmail())
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .provider(AuthProvider.KAKAO)
+                .providerId(kakaoUser.getProviderId())
+                .profileImage(kakaoUser.getProfileImage())
+                .build();
+        return userRepository.save(newUser);
+    }
+    @Transactional
+    public AuthResponse handleNaverCallback(String code, String state) {
+        // 1. 네이버 토큰 발급
+        String accessToken = getNaverAccessToken(code, state);
+
+        // 2. 네이버 유저 정보 조회
+        NaverUserInfo naverUser = getNaverUserInfo(accessToken);
+
+        // 3. DB 조회 및 회원가입
+        User user = userRepository.findByProviderAndProviderId(AuthProvider.NAVER, naverUser.getProviderId())
+                .orElseGet(() -> createNaverUser(naverUser));
+
+        // 4. JWT 발급
+        String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
+
+        return new AuthResponse(jwt, user.getUsername(), "Naver 로그인 성공");
+    }
+
+    private String getNaverAccessToken(String code, String state) {
+        RestTemplate rest = new RestTemplate();
+        String tokenUrl = "https://nid.naver.com/oauth2.0/token?grant_type=authorization_code"
+                + "&client_id=" + naverClientId
+                + "&client_secret=" + naverClientSecret
+                + "&redirect_uri=" + naverRedirectUri
+                + "&code=" + code
+                + "&state=" + state;
+
+        ResponseEntity<Map> response = rest.exchange(
+                tokenUrl,
+                HttpMethod.GET,
+                null,
+                Map.class
+        );
+        return (String) response.getBody().get("access_token");
+    }
+
+    private NaverUserInfo getNaverUserInfo(String accessToken) {
+        RestTemplate rest = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> response = rest.exchange(
+                "https://openapi.naver.com/v1/nid/me",
+                HttpMethod.GET,
+                request,
+                Map.class
+        );
+        return new NaverUserInfo(response.getBody());
+    }
+
+    private User createNaverUser(NaverUserInfo naverUser) {
+        User newUser = User.builder()
+                .username("naver_" + naverUser.getProviderId())
+                .email(naverUser.getEmail())
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .provider(AuthProvider.NAVER)
+                .providerId(naverUser.getProviderId())
+                .profileImage(naverUser.getProfileImage())
+                .build();
+        return userRepository.save(newUser);
+    }
 }
