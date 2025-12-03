@@ -34,15 +34,6 @@ public class BoardController {
         return toDto(saved);
     }
 
-    // 게시글 전체 조회
-    @GetMapping("/players/{playerId}/boards")
-    public List<BoardDto> getBoardsByPlayer(@PathVariable Long playerId) {
-        return boardService.findByPlayerId(playerId)
-                .stream()
-                .map(this::toDto)
-                .toList();
-    }
-
     // 특정 선수 응원글 조회 추가
     @GetMapping("/players/{playerId}/boards")
     public List<BoardDto> listByPlayer(@PathVariable Long playerId) {
