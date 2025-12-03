@@ -12,7 +12,7 @@ public class GeminiController {
     private final GeminiService geminiService;
 
     @GetMapping("/api/gemini-summary")
-    public String getNewSummary(@RequestParam("news") String newsBody){
-        return geminiService.getSummary(newsBody);
+    public String getNewSummary(@RequestParam("url") String newsUri){
+        return geminiService.getSummary(newsUri);
     }
 }
