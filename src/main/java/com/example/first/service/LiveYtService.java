@@ -46,8 +46,8 @@ public class LiveYtService {
         log.info("======================================");
     }
 
-    // 10초(10,000ms)마다 실행
-    @Scheduled(fixedRate = 10000)
+    // 1분(60,000ms)마다 실행
+    @Scheduled(fixedRate = 60000)
     public void checkYtLiveStatus() {
         List<LiveYtDto> foundVideos = new ArrayList<>();
         System.out.println("라이브 영상의 갱신을 시작합니다.");
