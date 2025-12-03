@@ -9,8 +9,14 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class BoardRequestDto {
-    @NotBlank String title;
-    @NotBlank String content;
-    @NotBlank String author;
-    String media;
+    @NotBlank
+    private String title;
+
+    @NotBlank
+    private String content;
+
+    @NotBlank
+    private String author;
+    private String media;
+    private Long playerId; // 응원할 선수 ID
 }

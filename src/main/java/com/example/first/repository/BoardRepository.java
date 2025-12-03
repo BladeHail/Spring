@@ -8,8 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface BoardRepository extends JpaRepository<BoardEntity,Long> {
-    List<BoardEntity> findAllByOrderByCreatedAtDesc();
-    List<BoardEntity> findAllByOrderByViewsDesc();
+    List<BoardEntity> findAllByOrderByCreatedAtDesc(); // 최신순 조회
+    List<BoardEntity> findAllByOrderByViewsDesc(); // 조회수순 조회
+    List<BoardEntity> findByPlayerIdOrderByCreatedAtDesc(Long playerId); // 선수별 응원글
     List<BoardEntity> findByDeletedFalse();
     Page<BoardEntity> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrAuthorContainingIgnoreCase(
             String title, String content, String author, Pageable pageable

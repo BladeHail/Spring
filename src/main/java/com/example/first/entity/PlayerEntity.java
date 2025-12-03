@@ -6,9 +6,13 @@ import lombok.Setter;
 
 import java.util.List;
 
+@Entity
+@Table(name = "player")
 @Getter
 @Setter
-@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PlayerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +37,9 @@ public class PlayerEntity {
     @Column
     private List<String> awards;
 
-    public PlayerEntity() {}
+    // 응원글 목록 (OneToMany, 양방향 필요 시)
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
+    private List<BoardEntity> boards = new ArrayList<>();
 
     public PlayerEntity(String name, String body, String type, String team, String media,
                         List<String> awards) {
