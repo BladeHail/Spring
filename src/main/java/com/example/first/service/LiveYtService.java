@@ -50,7 +50,7 @@ public class LiveYtService {
     @Scheduled(fixedRate = 10000)
     public void checkYtLiveStatus() {
         List<LiveYtDto> foundVideos = new ArrayList<>();
-
+        System.out.println("라이브 영상의 갱신을 시작합니다.");
         for (String channelId : targetChannelIds) {
             try {
                 // 아래 메서드 호출
