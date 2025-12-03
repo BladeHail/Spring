@@ -56,6 +56,9 @@ public class AuthService {
     @Value("${oauth.kakao.redirect-uri}")
     private String kakaoRedirectUri;
 
+    @Value("${oauth.kakao.client-secret}")
+    private String kakaoClientSecret;
+
     @Value("${oauth.naver.client-id}")
     private String naverClientId;
 
@@ -271,6 +274,7 @@ public class AuthService {
         params.add("client_id", kakaoClientId);
         params.add("redirect_uri", kakaoRedirectUri);
         params.add("code", code);
+        params.add("client_secret", kakaoClientSecret);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
