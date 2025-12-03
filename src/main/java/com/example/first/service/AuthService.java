@@ -267,8 +267,6 @@ public class AuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         rest.getMessageConverters().add(new FormHttpMessageConverter());
-        rest.getMessageConverters().forEach(c -> System.out.println(c.getClass()));
-        System.out.println("\n =========================================");
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", kakaoClientId);
