@@ -180,7 +180,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getUsername(), "OAuth 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "OAuth 로그인 성공");
     }
 
 
@@ -259,7 +259,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getUsername(), "Kakao 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Kakao 로그인 성공");
     }
 
     private String getKakaoAccessToken(String code) {
@@ -334,7 +334,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getUsername(), "Naver 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Naver 로그인 성공");
     }
 
     private String getNaverAccessToken(String code, String state) {
