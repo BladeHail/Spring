@@ -25,13 +25,15 @@ public class BoardEntity {
 
     @Column(nullable = false)
     private String author;
+
+    @Column(nullable = false)
     private int views;
 
     @Column
     private String media;
 
     @Column(nullable = false)
-    private boolean deleted =  false;
+    private boolean deleted = false;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

@@ -24,6 +24,9 @@ public class User {
     @Column
     private String email;
 
+    @Column(nullable = false)
+    private boolean isAdmin = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuthProvider provider;
