@@ -45,7 +45,7 @@ public class YtSubscriptionService {
     }
 
     private void subscribeChannel(String channelId) {
-        String callbackUrl = publicBaseUrl + "/yt/callback";
+        String callbackUrl = publicBaseUrl + "/api/yt/callback";
         String topicUrl = "https://www.youtube.com/xml/feeds/videos.xml?channel_id=" + channelId;
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
