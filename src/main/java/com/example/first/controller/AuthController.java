@@ -72,7 +72,19 @@ public class AuthController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    /*@GetMapping("/checkToken")
+    public ResponseEntity<String> checkToken(Authentication authentication) {
+        try {
+            if(authentication == null || !authentication.isAuthenticated()) {
+                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+            }
+            return ResponseEntity.ok("유효한 JWT");
+        } catch(Exception e) {
+            log.error("토큰 확인 실패", e);
+            return new ResponseEntity<>("토큰 확인 중 오류가 발생했습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }*/
     @GetMapping("/login/google")
     public void googleLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect(authService.getLoginDirection(AuthProvider.GOOGLE));

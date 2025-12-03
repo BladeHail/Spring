@@ -14,7 +14,7 @@ import org.w3c.dom.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/yt")
+@RequestMapping("/api/yt")
 public class YtCallbackController {
 
     private final LiveYtService liveYtService;
