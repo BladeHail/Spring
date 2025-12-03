@@ -26,26 +26,24 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        // Base64 디코딩된 비밀 키 사용 (보안상 권장)
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /** 토큰 생성 */
-    public String createToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    /** 토큰 생성 - Authentication 객체로부터 */
+    public String createToken(String username, Long tokenVersion) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // 사용자 이름
-                .setIssuedAt(now) // 발행 시간
-                .setExpiration(expiryDate) // 만료 시간
-                .signWith(key, SignatureAlgorithm.HS256) // 서명
+                .setSubject(username)
+                .claim("tokenVersion", tokenVersion)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    /** 토큰에서 사용자 이름(subject) 추출 */
     public String getUsernameFromToken(String token) {
         return Jwts.parser()
                 .setSigningKey(key)
@@ -55,7 +53,16 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    /** 토큰 유효성 검증 */
+
+    public Long getTokenVersionFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("tokenVersion", Long.class);
+    }
+
     public boolean validateToken(String authToken) {
         try {
             Jwts.parser().setSigningKey(key).build().parseClaimsJws(authToken);
