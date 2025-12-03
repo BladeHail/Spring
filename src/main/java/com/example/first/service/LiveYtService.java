@@ -46,8 +46,8 @@ public class LiveYtService {
         log.info("======================================");
     }
 
-    // 10분(600,000ms)마다 실행
-    @Scheduled(fixedRate = 600000)
+    // 10초(10,000ms)마다 실행
+    @Scheduled(fixedRate = 10000)
     public void checkYtLiveStatus() {
         List<LiveYtDto> foundVideos = new ArrayList<>();
 
@@ -78,7 +78,7 @@ public class LiveYtService {
                 String response = ytTemplate.getForObject(apiUrl, String.class);
                 JsonNode items = objectMapper.readTree(response).path("items");
 
-                if (items.size() > 0) {
+                if (!items.isEmpty()) {
                     for (JsonNode item : items) {
                         String title = item.path("snippet").path("title").asText();
                         String videoId = item.path("id").path("videoId").asText();
