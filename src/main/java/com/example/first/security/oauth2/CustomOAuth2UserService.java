@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,43 +52,30 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = oAuth2UserInfo.getName();
         String profileImage = oAuth2UserInfo.getProfileImage();
 
-        log.info("OAuth2 사용자 정보 - email: {}, name: {}, providerId: {}", email, name, providerId);
-
+        String targetUsername;
+        if (email != null && !email.isEmpty()) {
+            targetUsername = email;
+        } else {
+            targetUsername = registrationId + "_" + providerId;
+        }
         Optional<User> userOptional = userRepository.findByProviderAndProviderId(
                 AuthProvider.valueOf(registrationId.toUpperCase()), providerId);
-
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
-            user.updateOAuthInfo(name, profileImage);
+            user.updateOAuthInfo(targetUsername, profileImage);
             userRepository.save(user);
-            log.info("기존 OAuth2 사용자 업데이트: {} (provider: {})", email, registrationId);
         } else {
-            // OAuth 사용자를 위한 랜덤 비밀번호 생성
-            String randomPassword = generateRandomPassword();
-            String encodedPassword = passwordEncoder.encode(randomPassword);
-
             user = User.builder()
-                    .username(name != null ? name : "user_" + providerId)
+                    .username(targetUsername)
                     .email(email)
                     .provider(AuthProvider.valueOf(registrationId.toUpperCase()))
                     .providerId(providerId)
                     .profileImage(profileImage)
-                    .password(encodedPassword)
+                    .password(null)
                     .build();
             userRepository.save(user);
-            log.info("신규 OAuth2 사용자 생성: {} (provider: {})", email, registrationId);
-            log.info("랜덤 비밀번호 생성 완료");
         }
-
         return new PrincipalDetails(user, oAuth2User.getAttributes());
-    }
-
-    /**
-     * OAuth 사용자를 위한 랜덤 비밀번호 생성
-     */
-    private String generateRandomPassword() {
-        return UUID.randomUUID().toString().replace("-", "") +
-                UUID.randomUUID().toString().replace("-", "");
     }
 }
