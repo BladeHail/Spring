@@ -27,14 +27,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        log.info("=== OAuth2 로그인 시작 ===");
-        log.info("Provider: {}", userRequest.getClientRegistration().getRegistrationId());
-        log.info("Attributes: {}", oAuth2User.getAttributes());
-
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuth2UserInfo oAuth2UserInfo = null;
 
-        // Provider별 사용자 정보 매핑
         if ("kakao".equals(registrationId)) {
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
         } else if ("google".equals(registrationId)) {
@@ -52,25 +47,37 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = oAuth2UserInfo.getName();
         String profileImage = oAuth2UserInfo.getProfileImage();
 
-        // username 생성 로직: 이메일 우선 사용
-        String targetUsername;
-        if (email != null && !email.isEmpty()) {
-            targetUsername = email;
-        } else {
-            targetUsername = registrationId + "_" + providerId;
-        }
-
         Optional<User> userOptional = userRepository.findByProviderAndProviderId(
                 AuthProvider.valueOf(registrationId.toUpperCase()), providerId);
 
+        String targetUsername;
+        String fallbackUsername = registrationId + "_" + providerId; // 예: naver_123456
+
+        if (email != null && !email.isEmpty()) {
+            Optional<User> userByEmail = userRepository.findByUsername(email);
+
+            if (userByEmail.isPresent()) {
+                User existUser = userByEmail.get();
+
+                if (userOptional.isPresent() && existUser.getId().equals(userOptional.get().getId())) {
+                    targetUsername = email;
+                } else {
+                    targetUsername = fallbackUsername;
+                    log.info("아이디 중복 방지: 일반 회원이 존재하여 {} 대신 {}를 사용합니다.", email, targetUsername);
+                }
+            } else {
+                targetUsername = email;
+            }
+        } else {
+            targetUsername = fallbackUsername;
+        }
+
         User user;
         if (userOptional.isPresent()) {
-            // 이미 가입된 회원이라면 정보 업데이트
             user = userOptional.get();
             user.updateOAuthInfo(targetUsername, profileImage);
             userRepository.save(user);
         } else {
-            // [수정] 신규 회원일 경우 랜덤 비밀번호 생성 및 암호화
             String uuid = UUID.randomUUID().toString().substring(0, 16);
             String encodedPassword = passwordEncoder.encode(uuid);
 
