@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "player")
+@Table(name = "player_entity")
 @Getter
 @Setter
 @NoArgsConstructor
