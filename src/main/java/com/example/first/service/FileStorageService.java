@@ -1,5 +1,6 @@
 package com.example.first.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,7 +13,8 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
-
+    @Value("server.base-url")
+    private String location;
     private final Path root = Paths.get("/home/Serverman/Spring/files/media/players"); // 원하는 경로
 
     public String save(MultipartFile file) {
@@ -27,7 +29,7 @@ public class FileStorageService {
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
             // Nginx에서 /media → /var/www/media 연결
-            return "/media/players/" + filename;
+            return location + "/media/players/" + filename;
 
         } catch (IOException e) {
             throw new RuntimeException("File saving failed", e);
