@@ -58,12 +58,17 @@ public class YtCallbackController {
                 String title = getFirstChildText(entry, "title");
                 String videoId = getFirstChildText(entry, "yt:videoId");
                 String channelId = getFirstChildText(entry, "yt:channelId");
-
+                String channelName = null;
+                NodeList authors = entry.getElementsByTagName("author");
+                if (authors.getLength() > 0) {
+                    Element authorTag = (Element) authors.item(0);
+                    channelName = getFirstChildText(authorTag, "name");
+                }
                 if (videoId != null && !videoId.isBlank()
                         && channelId != null && !channelId.isBlank()) {
 
                     // title에 키워드가 있는지 / 실제 라이브인지 여부는 Service에서 처리
-                    liveYtService.registerLiveFromCallback(title, videoId, channelId);
+                    liveYtService.registerLiveFromCallback(title, videoId, channelId, channelName);
                 }
             }
 

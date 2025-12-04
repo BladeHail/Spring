@@ -109,7 +109,7 @@ public class LiveYtService {
      * - 키워드가 포함되어 있다면 currentLiveVideos에 upsert
      *   (같은 videoId가 이미 있다면 갱신, 없다면 추가)
      */
-    public void registerLiveFromCallback(String title, String videoId, String channelId) {
+    public void registerLiveFromCallback(String title, String videoId, String channelId, String channelName) {
         if (title == null) title = "";
         if (!containsKeyword(title)) {
             log.info("키워드 미일치로 콜백 무시: title={}", title);
@@ -120,7 +120,7 @@ public class LiveYtService {
             List<LiveYtDto> copy = new ArrayList<>(currentLiveVideos);
             // 같은 videoId가 있다면 제거 후 다시 추가 (업데이트 개념)
             copy.removeIf(v -> v.getVideoId().equals(videoId));
-            copy.add(new LiveYtDto(title, videoId, channelId, null));
+            copy.add(new LiveYtDto(title, videoId, channelId, channelName));
             currentLiveVideos = copy;
         }
 
