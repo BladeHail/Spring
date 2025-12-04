@@ -1,5 +1,7 @@
 package com.example.first.security.oauth2;
 
+import com.example.first.entity.User;
+import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +21,7 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -28,14 +31,19 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
         String username = principalDetails.getUsername();
 
-        String token = jwtTokenProvider.createToken(username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        log.info("OAuth2 로그인 성공: {}, JWT 발급", username);
+        String token = jwtTokenProvider.createToken(username, user.getTokenVersion());
+
+        log.info("OAuth2 로그인 성공: username={}, tokenVersion={}, JWT 발급",
+                username, user.getTokenVersion());
 
         String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/redirect")
                 .queryParam("token", token)
                 .build()
                 .toUriString();
+
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

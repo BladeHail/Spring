@@ -158,7 +158,7 @@ class RepositoryTest {
         entityManager.flush();
 
         // when
-        boolean exists = predictionRepository.existsByUserIdAndMatch(user.getId(), match);
+        boolean exists = predictionRepository.existsPredictionByUserIdAndMatch(user.getId(), match);
 
         Match anotherMatch = Match.builder()
                 .teamA("미국")
@@ -169,7 +169,7 @@ class RepositoryTest {
         entityManager.persist(anotherMatch);
         entityManager.flush();
 
-        boolean notExists = predictionRepository.existsByUserIdAndMatch(user.getId(), anotherMatch);
+        boolean notExists = predictionRepository.existsPredictionByUserIdAndMatch(user.getId(), anotherMatch);
 
         // then
         assertThat(exists).isTrue();

@@ -21,8 +21,11 @@ public class User {
     @Column
     private String password;
 
-    @Column(unique = true)
+    @Column
     private String email;
+
+    @Column(nullable = false)
+    private boolean isAdmin = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -32,6 +35,9 @@ public class User {
 
     private String profileImage;
 
+    @Column(nullable = false)
+    private Long tokenVersion = 0L;
+
     @Builder
     public User(String username, String password, String email, AuthProvider provider, String providerId, String profileImage) {
         this.username = username;
@@ -40,9 +46,16 @@ public class User {
         this.provider = provider != null ? provider : AuthProvider.LOCAL;
         this.providerId = providerId;
         this.profileImage = profileImage;
+        this.tokenVersion = 0L;
     }
     public void updateOAuthInfo(String username, String profileImage) {
         this.username = username;
         this.profileImage = profileImage;
+    }
+    public void logout() {
+        this.tokenVersion++;
+    }
+    public void invalidateOAuthToken() {
+        this.tokenVersion++;
     }
 }

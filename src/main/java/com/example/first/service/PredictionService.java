@@ -6,7 +6,6 @@ import com.example.first.entity.Match;
 import com.example.first.entity.MatchResult;
 import com.example.first.entity.Prediction;
 import com.example.first.entity.User;
-import com.example.first.repository.MatchRepository;
 import com.example.first.repository.PredictionRepository;
 import com.example.first.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PredictionService {
+public class  PredictionService {
 
     private final PredictionRepository predictionRepository;
     private final MatchService matchService;
@@ -38,12 +37,13 @@ public class PredictionService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         Match match = matchService.getMatchById(requestDto.getMatchId());
-
+        Long matchId = match.getId();
+        System.out.println("!!!!! 유저는 "+userId);
         // 검증
         if (!match.isPredictionOpen()) {
             throw new IllegalStateException("예측이 마감된 경기입니다.");
         }
-        if (predictionRepository.existsByUserIdAndMatch(userId, match)) {
+        if (predictionRepository.existsPredictionByUserIdAndMatch(userId, match)) {
             throw new IllegalStateException("이미 예측한 경기입니다.");
         }
         if (LocalDateTime.now().isAfter(match.getMatchDate())) {
@@ -75,7 +75,7 @@ public class PredictionService {
 
     public boolean hasUserPredicted(Long userId, Long matchId) {
         Match match = matchService.getMatchById(matchId);
-        return predictionRepository.existsByUserIdAndMatch(userId, match);
+        return predictionRepository.existsPredictionByUserIdAndMatch(userId, match);
     }
 
     public PredictionStats getUserStats(Long userId) {

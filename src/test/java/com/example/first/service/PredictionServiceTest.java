@@ -70,7 +70,7 @@ class PredictionServiceTest {
         // given
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(matchService.getMatchById(1L)).thenReturn(match);
-        when(predictionRepository.existsByUserIdAndMatch(1L, match)).thenReturn(false);
+        when(predictionRepository.existsPredictionByUserIdAndMatch(1L, match)).thenReturn(false);
 
         Prediction savedPrediction = Prediction.builder()
                 .id(1L)
@@ -90,7 +90,7 @@ class PredictionServiceTest {
 
         verify(userRepository).findById(1L);
         verify(matchService).getMatchById(1L);
-        verify(predictionRepository).existsByUserIdAndMatch(1L, match);
+        verify(predictionRepository).existsPredictionByUserIdAndMatch(1L, match);
         verify(predictionRepository).save(any(Prediction.class));
     }
 
@@ -115,7 +115,7 @@ class PredictionServiceTest {
         // given
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(matchService.getMatchById(1L)).thenReturn(match);
-        when(predictionRepository.existsByUserIdAndMatch(1L, match)).thenReturn(true);
+        when(predictionRepository.existsPredictionByUserIdAndMatch(1L, match)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> predictionService.createPrediction(1L, requestDto))
@@ -155,7 +155,7 @@ class PredictionServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(matchService.getMatchById(1L)).thenReturn(pastMatch);
-        when(predictionRepository.existsByUserIdAndMatch(1L, pastMatch)).thenReturn(false);
+        when(predictionRepository.existsPredictionByUserIdAndMatch(1L, pastMatch)).thenReturn(false);
 
         // when & then
         assertThatThrownBy(() -> predictionService.createPrediction(1L, requestDto))
@@ -196,7 +196,7 @@ class PredictionServiceTest {
     void hasUserPredicted_True() {
         // given
         when(matchService.getMatchById(1L)).thenReturn(match);
-        when(predictionRepository.existsByUserIdAndMatch(1L, match)).thenReturn(true);
+        when(predictionRepository.existsPredictionByUserIdAndMatch(1L, match)).thenReturn(true);
 
         // when
         boolean result = predictionService.hasUserPredicted(1L, 1L);
@@ -205,7 +205,7 @@ class PredictionServiceTest {
         assertThat(result).isTrue();
 
         verify(matchService).getMatchById(1L);
-        verify(predictionRepository).existsByUserIdAndMatch(1L, match);
+        verify(predictionRepository).existsPredictionByUserIdAndMatch(1L, match);
     }
 
     @Test
@@ -213,7 +213,7 @@ class PredictionServiceTest {
     void hasUserPredicted_False() {
         // given
         when(matchService.getMatchById(1L)).thenReturn(match);
-        when(predictionRepository.existsByUserIdAndMatch(1L, match)).thenReturn(false);
+        when(predictionRepository.existsPredictionByUserIdAndMatch(1L, match)).thenReturn(false);
 
         // when
         boolean result = predictionService.hasUserPredicted(1L, 1L);

@@ -25,24 +25,22 @@ public class BoardController {
     private final BoardService boardService;
 
     // 게시글 등록
-    @PostMapping
-    public BoardDto create(@Valid @RequestBody BoardRequestDto request) {
-        BoardEntity entity = new BoardEntity(
-                request.getTitle(),
-                request.getContent(),
-                request.getAuthor(),
-                request.getMedia()
-        );
-        BoardEntity saved = boardService.create(entity);
+    @PostMapping("/players/{playerId}/boards")
+    public BoardDto create(
+            @PathVariable Long playerId,
+            @Valid @RequestBody BoardRequestDto request) {
+        request.setPlayerId(playerId);
+        BoardEntity saved = boardService.create(request);
         return toDto(saved);
     }
 
-    // 게시글 전체 조회
-    @GetMapping
-    public List<BoardDto> list() {
-        return boardService.findAll().stream()
+    // 특정 선수 응원글 조회 추가
+    @GetMapping("/players/{playerId}/boards")
+    public List<BoardDto> listByPlayer(@PathVariable Long playerId) {
+        return boardService.findByPlayerId(playerId)
+                .stream()
                 .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 게시글 상세 조회 (조회수 증가)

@@ -27,7 +27,7 @@ public class PredictionController {
 
     @GetMapping("/matches")
     public List<MatchDto> getMatches(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         return matchService.getPredictableMatches().stream()
                 .map(match -> MatchDto.fromEntity(
                         match,
@@ -38,13 +38,13 @@ public class PredictionController {
 
     @GetMapping("/my")
     public List<PredictionResponseDto> myPredictions(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         return predictionService.getUserPredictions(userId);
     }
 
     @GetMapping("/stats")
     public PredictionService.PredictionStats stats(Authentication auth) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         return predictionService.getUserStats(userId);
     }
 
@@ -53,14 +53,11 @@ public class PredictionController {
             @RequestBody PredictionRequestDto dto,
             Authentication auth
     ) {
-        Long userId = getUserId(auth);
+        Long userId = getCurrentUserId(auth);
         var prediction = predictionService.createPrediction(userId, dto);
         return PredictionResponseDto.fromEntity(prediction);
     }
 
-    private Long getUserId(Authentication auth) {
-        return 1L; // TODO: JWT 인증된 사용자로 교체 예정
-    }
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("로그인이 필요한 기능입니다.");

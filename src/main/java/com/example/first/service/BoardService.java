@@ -1,8 +1,11 @@
 package com.example.first.service;
 
+import com.example.first.dto.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
+import com.example.first.entity.PlayerEntity;
 import com.example.first.exception.BoardNotFoundException;
 import com.example.first.repository.BoardRepository;
+import com.example.first.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,16 +25,30 @@ import java.util.List;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final PlayerRepository playerRepository;
 
     private LocalDateTime now() {
         return LocalDateTime.now();
     }
 
     // 생성
-    public BoardEntity create(BoardEntity boardEntity) {
-        boardEntity.setCreatedAt(LocalDateTime.now());
-        boardEntity.setUpdatedAt(LocalDateTime.now());
-        return boardRepository.save(boardEntity);
+    public BoardEntity create(BoardRequestDto request) {
+
+        PlayerEntity player = playerRepository.findById(request.getPlayerId())
+                .orElseThrow(() -> new RuntimeException("선수 없음"));
+
+        BoardEntity board = BoardEntity.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .author(request.getAuthor())
+                .media(request.getMedia())
+                .views(0)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .player(player)
+                .build();
+
+        return boardRepository.save(board);
     }
 
     // 목록
@@ -67,6 +84,9 @@ public class BoardService {
     }
     public List<BoardEntity> listByViews() {
         return boardRepository.findAllByOrderByViewsDesc();
+    }
+    public List<BoardEntity> findByPlayerId(Long playerId) {
+        return boardRepository.findByPlayerIdOrderByCreatedAtDesc(playerId);
     }
 
     public Page<BoardEntity> findPaged(int page, int size, String sortBy, String direction) {
