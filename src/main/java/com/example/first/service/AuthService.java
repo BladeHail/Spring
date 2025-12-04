@@ -75,6 +75,10 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
+    public User loadUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+    @Transactional
     public User register(AuthRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
