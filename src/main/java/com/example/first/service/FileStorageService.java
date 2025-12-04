@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
-    @Value("server.base-url")
+    @Value("${server.base-url}")
     private String location;
     private final Path root = Paths.get("/home/Serverman/Spring/files/media/players"); // 원하는 경로
 
