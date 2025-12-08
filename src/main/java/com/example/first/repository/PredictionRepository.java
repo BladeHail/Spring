@@ -15,4 +15,6 @@ public interface PredictionRepository extends JpaRepository<Prediction, Long> {
     List<Prediction> findByUserIdOrderByPredictedAtDesc(Long userId);
     long countByUserId(Long userId);
     long countByUserIdAndMatch_ActualResultNotNull(Long userId);
+
+    boolean existsByUserIdAndMatch(Long userId, Match match);
 }

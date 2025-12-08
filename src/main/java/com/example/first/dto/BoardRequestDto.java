@@ -15,7 +15,6 @@ public class BoardRequestDto {
     @NotBlank
     private String content;
 
-    @NotBlank
     private String author;
     private String media;
     private Long playerId; // 응원할 선수 ID
