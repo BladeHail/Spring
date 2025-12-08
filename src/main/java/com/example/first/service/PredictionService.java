@@ -17,53 +17,65 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class  PredictionService {
+public class PredictionService {
 
     private final PredictionRepository predictionRepository;
     private final MatchService matchService;
-    private final UserRepository userRepository;  //
-
+    private final UserRepository userRepository;
 
     @Transactional
     public Prediction createPrediction(Long userId, PredictionRequestDto requestDto) {
-        // User 조회 추가
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         Match match = matchService.getMatchById(requestDto.getMatchId());
-        Long matchId = match.getId();
-        System.out.println("!!!!! 유저는 "+userId);
-        // 검증
+
+        // 1. 관리자가 수동으로 마감했는지 체크
         if (!match.isPredictionOpen()) {
             throw new IllegalStateException("예측이 마감된 경기입니다.");
         }
-        if (predictionRepository.existsPredictionByUserIdAndMatch(userId, match)) {
-            throw new IllegalStateException("이미 예측한 경기입니다.");
+
+        // 2. 경기 시작 10분 전 마감 체크
+        // 경기 시간 10분 전 시간 구하기
+        LocalDateTime deadline = match.getMatchDate().minusMinutes(10);
+        if (LocalDateTime.now().isAfter(deadline)) {
+            throw new IllegalStateException("경기 시작 10분 전까지만 예측(수정)할 수 있습니다.");
         }
-        if (LocalDateTime.now().isAfter(match.getMatchDate())) {
-            throw new IllegalStateException("경기가 이미 시작되었습니다.");
-        }
+
+        // 3. 올바른 결과값인지 검증
         if (!isValidResult(requestDto.getPredictedResult())) {
             throw new IllegalStateException("올바르지 않은 예측 결과입니다.");
         }
 
-        Prediction prediction = Prediction.builder()
-                .user(user)
-                .match(match)
-                .predictedResult(MatchResult.valueOf(requestDto.getPredictedResult()))
-                .predictedAt(LocalDateTime.now())
-                .build();
+        MatchResult newResult = MatchResult.valueOf(requestDto.getPredictedResult());
 
-        Prediction saved = predictionRepository.save(prediction);
-        log.info("예측 생성: userId={}, matchId={}, result={}",
-                userId, match.getId(), requestDto.getPredictedResult());
-        return saved;
+        // 4. 기존 예측 확인 (있으면 수정, 없으면 생성)
+        Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
+
+        Prediction prediction;
+        if (existingPrediction.isPresent()) {
+            prediction = existingPrediction.get();
+            prediction.setPredictedResult(newResult);
+            prediction.setPredictedAt(LocalDateTime.now()); // 수정 시간 업데이트
+            log.info("예측 수정: userId={}, matchId={}, result={}", userId, match.getId(), newResult);
+        } else {
+            prediction = Prediction.builder()
+                    .user(user)
+                    .match(match)
+                    .predictedResult(newResult)
+                    .predictedAt(LocalDateTime.now())
+                    .build();
+            log.info("예측 생성: userId={}, matchId={}, result={}", userId, match.getId(), newResult);
+        }
+
+        return predictionRepository.save(prediction);
     }
 
     public List<PredictionResponseDto> getUserPredictions(Long userId) {
@@ -75,7 +87,7 @@ public class  PredictionService {
 
     public boolean hasUserPredicted(Long userId, Long matchId) {
         Match match = matchService.getMatchById(matchId);
-        return predictionRepository.existsPredictionByUserIdAndMatch(userId, match);
+        return predictionRepository.existsByUserIdAndMatch(userId, match);
     }
 
     public PredictionStats getUserStats(Long userId) {
