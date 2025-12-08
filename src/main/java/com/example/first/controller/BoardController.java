@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,14 +39,19 @@ public class BoardController {
     }
 
     // 특정 선수 응원글 조회 추가
-    @GetMapping("/players/{playerId}")
+    @GetMapping("/players/{playerId}/boards")
     public Page<BoardDto> listByPlayer(
             @PathVariable Long playerId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction
+            Pageable pageable
     ) {
+        // Pageable → 기존 service 방식으로 변환
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        Sort sort = pageable.getSort();
+        // 정렬이 여러개일 가능성도 있으므로 첫 번째만 사용
+        Sort.Order order = sort.isEmpty() ? Sort.Order.desc("createdAt") : sort.iterator().next();
+        String sortBy = order.getProperty();
+        String direction = order.getDirection().isAscending() ? "asc" : "desc";
         return boardService.findByPlayerIdPaged(playerId, page, size, sortBy, direction)
                 .map(this::toDto);
     }
