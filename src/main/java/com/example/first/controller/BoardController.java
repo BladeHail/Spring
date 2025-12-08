@@ -35,12 +35,16 @@ public class BoardController {
     }
 
     // 특정 선수 응원글 조회 추가
-    @GetMapping("/players/{playerId}/boards")
-    public List<BoardDto> listByPlayer(@PathVariable Long playerId) {
-        return boardService.findByPlayerId(playerId)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    @GetMapping("/players/{playerId}")
+    public Page<BoardDto> listByPlayer(
+            @PathVariable Long playerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return boardService.findByPlayerIdPaged(playerId, page, size, sortBy, direction)
+                .map(this::toDto);
     }
 
     // 게시글 상세 조회 (조회수 증가)
@@ -99,6 +103,7 @@ public class BoardController {
     }
 
     // 페이징 목록: /boards/page?page=0&size=10&sortBy=createdAt&dir=desc
+    @GetMapping("/page")
     public Page<BoardDto> pagedList(@RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "10")int size,
                                     @RequestParam(defaultValue = "createdAt") String sortBy,
