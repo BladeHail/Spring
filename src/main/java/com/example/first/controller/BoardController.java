@@ -6,10 +6,10 @@ import com.example.first.entity.BoardEntity;
 import com.example.first.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,9 +27,11 @@ public class BoardController {
     // 게시글 등록
     @PostMapping("/players/{playerId}/boards")
     public BoardDto create(
+            Authentication auth,
             @PathVariable Long playerId,
             @Valid @RequestBody BoardRequestDto request) {
         request.setPlayerId(playerId);
+        request.setAuthor(auth.getName());
         BoardEntity saved = boardService.create(request);
         return toDto(saved);
     }
