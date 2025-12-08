@@ -128,12 +128,12 @@ public class LiveYtService {
     }
 
     /**
-     * NOTE: 라이브 유지 상태 확인 주기 (기본값: 1분).
+     * NOTE: 라이브 유지 상태 확인 주기 (현재 15초).
      * 필요 시 fixedRate 값을 조정해서 간격을 변경할 수 있다.
      * - 현재 저장된 모든 videoId를 한 번에 videos.list로 조회
      * - actualEndTime 이 존재하는 videoId는 "종료"로 판단하여 제거
      */
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 15000)
     public void refreshLiveStatusWithVideosApi() {
         List<LiveYtDto> snapshot = currentLiveVideos;
         if (snapshot.isEmpty()) {
