@@ -3,6 +3,8 @@ package com.example.first.controller;
 import com.example.first.dto.BoardDto;
 import com.example.first.dto.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
+import com.example.first.entity.User;
+import com.example.first.repository.UserRepository;
 import com.example.first.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,17 +28,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
+    private final UserRepository userRepository;
 
     // 게시글 등록
     @PostMapping("/players/{playerId}/boards")
     public BoardDto create(
             Authentication auth,
             @PathVariable Long playerId,
-            @Valid @RequestBody BoardRequestDto request) {
-        request.setPlayerId(playerId);
-        request.setAuthor(auth.getName());
-        BoardEntity saved = boardService.create(request);
-        return toDto(saved);
+            @Valid @RequestBody BoardRequestDto request,
+            Authentication authentication
+    ){
+     if (authentication == null || !authentication.isAuthenticated()) {
+
+     }
+     String currentUsername = authentication.getName();
+     User user = userRepository.findByUsername(currentUsername)
+             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+     String displayAuthor = user.getEmail();
+     if (displayAuthor == null || displayAuthor.isEmpty()) {
+         displayAuthor = user.getUsername();
+     }
+     request.setAuthor(displayAuthor);
+     request.setPlayerId(playerId);
+     BoardEntity saved = boardService.create(request);
+     return toDto(saved);
     }
 
     // 특정 선수 응원글 조회 추가
@@ -145,6 +161,27 @@ public class BoardController {
                                     @RequestParam String author,
                                     @RequestParam(required = false) MultipartFile file) throws IOException {
         BoardEntity saved = boardService.createWithImage(title, content, author, file);
+        return toDto(saved);
+    }
+    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BoardDto createWithImage(
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam(required = false) MultipartFile file,
+            Authentication authentication // [추가]
+    ) throws IOException {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+
+        User user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("유저 없음"));
+
+
+        String realAuthor = user.getEmail() != null ? user.getEmail() : user.getUsername();
+
+        BoardEntity saved = boardService.createWithImage(title, content, realAuthor, file);
         return toDto(saved);
     }
 }
