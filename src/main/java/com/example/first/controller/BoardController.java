@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class BoardController {
     private final BoardService boardService;
     private final UserRepository userRepository;
-
     // 게시글 등록
     @PostMapping("/players/{playerId}/boards")
     public BoardDto create(
@@ -152,36 +151,5 @@ public class BoardController {
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return new PageImpl<>(dtoList, entityPage.getPageable(), entityPage.getTotalElements());
-    }
-
-    // 이미지 포함 게시글 등록: multipart/form-data
-    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public BoardDto createWithImage(@RequestParam String title,
-                                    @RequestParam String content,
-                                    @RequestParam String author,
-                                    @RequestParam(required = false) MultipartFile file) throws IOException {
-        BoardEntity saved = boardService.createWithImage(title, content, author, file);
-        return toDto(saved);
-    }
-    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public BoardDto createWithImage(
-            @RequestParam String title,
-            @RequestParam String content,
-            @RequestParam(required = false) MultipartFile file,
-            Authentication authentication // [추가]
-    ) throws IOException {
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("로그인이 필요합니다.");
-        }
-
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("유저 없음"));
-
-
-        String realAuthor = user.getEmail() != null ? user.getEmail() : user.getUsername();
-
-        BoardEntity saved = boardService.createWithImage(title, content, realAuthor, file);
-        return toDto(saved);
     }
 }
