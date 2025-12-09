@@ -15,4 +15,5 @@ public interface BoardRepository extends JpaRepository<BoardEntity,Long> {
     Page<BoardEntity> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrAuthorContainingIgnoreCase(
             String title, String content, String author, Pageable pageable
     );
+    Page<BoardEntity> findByPlayerId(Long playerId, Pageable pageable);
 }

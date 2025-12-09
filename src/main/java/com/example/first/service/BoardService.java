@@ -89,6 +89,13 @@ public class BoardService {
         return boardRepository.findByPlayerIdOrderByCreatedAtDesc(playerId);
     }
 
+    public Page<BoardEntity> findByPlayerIdPaged(Long playerId, int page, int size, String sortBy, String direction) {
+        Sort sort = direction.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() :
+                Sort.by(sortBy).ascending();
+        PageRequest pageable = PageRequest.of(page, size, sort);
+        return boardRepository.findByPlayerId(playerId, pageable);
+    }
     public Page<BoardEntity> findPaged(int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() :
@@ -128,4 +135,4 @@ public class BoardService {
                 .build();
         return boardRepository.save(board);
     }
-}
+ }

@@ -8,9 +8,10 @@ import com.example.first.repository.UserRepository;
 import com.example.first.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,6 +33,7 @@ public class BoardController {
     // 게시글 등록
     @PostMapping("/players/{playerId}/boards")
     public BoardDto create(
+            Authentication auth,
             @PathVariable Long playerId,
             @Valid @RequestBody BoardRequestDto request,
             Authentication authentication
@@ -54,11 +56,20 @@ public class BoardController {
 
     // 특정 선수 응원글 조회 추가
     @GetMapping("/players/{playerId}/boards")
-    public List<BoardDto> listByPlayer(@PathVariable Long playerId) {
-        return boardService.findByPlayerId(playerId)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<BoardDto> listByPlayer(
+            @PathVariable Long playerId,
+            Pageable pageable
+    ) {
+        // Pageable → 기존 service 방식으로 변환
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        Sort sort = pageable.getSort();
+        // 정렬이 여러개일 가능성도 있으므로 첫 번째만 사용
+        Sort.Order order = sort.isEmpty() ? Sort.Order.desc("createdAt") : sort.iterator().next();
+        String sortBy = order.getProperty();
+        String direction = order.getDirection().isAscending() ? "asc" : "desc";
+        return boardService.findByPlayerIdPaged(playerId, page, size, sortBy, direction)
+                .map(this::toDto);
     }
 
     // 게시글 상세 조회 (조회수 증가)
@@ -117,6 +128,7 @@ public class BoardController {
     }
 
     // 페이징 목록: /boards/page?page=0&size=10&sortBy=createdAt&dir=desc
+    @GetMapping("/page")
     public Page<BoardDto> pagedList(@RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "10")int size,
                                     @RequestParam(defaultValue = "createdAt") String sortBy,
