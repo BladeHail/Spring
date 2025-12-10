@@ -14,14 +14,10 @@ public class UserResponseDto {
 
     private String username;
 
-    private String password;
-
     private String email;
 
     private boolean isAdmin = false;
 
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-
-    private String providerId;
 }

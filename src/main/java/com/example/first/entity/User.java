@@ -63,10 +63,8 @@ public class User {
         UserResponseDto dto = new UserResponseDto();
         dto.setId(id);
         dto.setUsername(username);
-        dto.setPassword(password);
         dto.setEmail(email);
         dto.setProvider(provider);
-        dto.setProviderId(providerId);
         return dto;
     }
 }
