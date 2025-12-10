@@ -85,27 +85,13 @@ public class BoardController {
         //return toDto(boardService.update(id, updated));
     }
 
-    private boolean tryAuthAndSetName(Authentication auth, @RequestBody BoardRequestDto request) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return true;
-        }
-        String currentUsername = auth.getName();
-        User user = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
-        String displayAuthor = user.getEmail();
-        if (displayAuthor == null || displayAuthor.isEmpty()) {
-            displayAuthor = user.getUsername();
-        }
-        request.setAuthor(displayAuthor);
-        return false;
-    }
-
     // 게시글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(Authentication auth, @PathVariable Long id) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
-        }
+        //Below is dangerous since it does not compare User, but the String Author. May there be better ways...
+        if (boardService.findById(id) == null || !tryAuthAndGetName(auth).equals(boardService.findById(id).getAuthor())) {
+            return new ResponseEntity<>("올바르지 않은 요청입니다.", HttpStatus.BAD_REQUEST);
+        } //bad request for all, it's on my purpose
         boardService.delete(id);
         return new ResponseEntity<>("삭제되었습니다.", HttpStatus.NO_CONTENT);
     }
@@ -165,5 +151,32 @@ public class BoardController {
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return new PageImpl<>(dtoList, entityPage.getPageable(), entityPage.getTotalElements());
+    }
+    private boolean tryAuthAndSetName(Authentication auth, @RequestBody BoardRequestDto request) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return true;
+        }
+        String currentUsername = auth.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+        String displayAuthor = user.getEmail();
+        if (displayAuthor == null || displayAuthor.isEmpty()) {
+            displayAuthor = user.getUsername();
+        }
+        request.setAuthor(displayAuthor);
+        return false;
+    }
+    private String tryAuthAndGetName(Authentication auth) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String currentUsername = auth.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+        String displayAuthor = user.getEmail();
+        if (displayAuthor == null || displayAuthor.isEmpty()) {
+            displayAuthor = user.getUsername();
+        }
+        return displayAuthor;
     }
 }
