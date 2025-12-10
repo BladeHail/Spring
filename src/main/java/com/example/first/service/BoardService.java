@@ -11,12 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,17 +38,12 @@ public class BoardService {
                 .author(request.getAuthor())
                 .media(request.getMedia())
                 .views(0)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(now())
+                .updatedAt(now())
                 .player(player)
                 .build();
 
         return boardRepository.save(board);
-    }
-
-    // 목록
-    public List<BoardEntity> findAll() {
-        return boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     // 상세 + 조회수 증가
@@ -65,18 +55,22 @@ public class BoardService {
     }
 
     // 수정
-    public BoardEntity update(Long id, BoardEntity updated) {
+    public void update(Long id, BoardEntity updated) {
         BoardEntity boardEntity = boardRepository.findById(id)
                 .orElseThrow(BoardNotFoundException::new);
         boardEntity.setTitle(updated.getTitle());
         boardEntity.setContent(updated.getContent());
-        boardEntity.setUpdatedAt(LocalDateTime.now());
-        return boardRepository.save(boardEntity);
+        boardEntity.setUpdatedAt(now());
+        boardRepository.save(boardEntity);
     }
 
     // 삭제 대신 숨김 플래그만 변경
     public void delete(Long id) {
-        boardRepository.deleteById(id);
+        BoardEntity boardEntity = boardRepository.findById(id)
+                .orElseThrow(BoardNotFoundException::new);
+        boardEntity.setUpdatedAt(now());
+        boardEntity.setDeleted(true);
+        boardRepository.save(boardEntity);
     }
 
     public List<BoardEntity> listByLatest() {
@@ -85,16 +79,12 @@ public class BoardService {
     public List<BoardEntity> listByViews() {
         return boardRepository.findAllByOrderByViewsDesc();
     }
-    public List<BoardEntity> findByPlayerId(Long playerId) {
-        return boardRepository.findByPlayerIdOrderByCreatedAtDesc(playerId);
-    }
-
     public Page<BoardEntity> findByPlayerIdPaged(Long playerId, int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() :
                 Sort.by(sortBy).ascending();
         PageRequest pageable = PageRequest.of(page, size, sort);
-        return boardRepository.findByPlayerId(playerId, pageable);
+        return boardRepository.findByPlayerIdAndDeletedFalse(playerId, pageable);
     }
     public Page<BoardEntity> findPaged(int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("desc") ?
@@ -113,26 +103,4 @@ public class BoardService {
                         keyword, keyword, keyword, pageable
                 );
     }
-    public BoardEntity createWithImage(String title, String content, String author,
-                                       MultipartFile file) throws IOException {
-        String mediaPath = null;
-        if (file != null && !file.isEmpty()) {
-            String folder = "src/main/resources/static/images/";
-            Files.createDirectories(Paths.get(folder));
-            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(folder + filename);
-            Files.write(path, file.getBytes());
-            mediaPath = folder + filename;
-        }
-        BoardEntity board = BoardEntity.builder()
-                .title(title)
-                .content(content)
-                .author(author)
-                .media(mediaPath)
-                .views(0)
-                .createdAt(now())
-                .updatedAt(now())
-                .build();
-        return boardRepository.save(board);
-    }
- }
+}

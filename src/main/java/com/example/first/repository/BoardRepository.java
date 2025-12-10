@@ -16,4 +16,5 @@ public interface BoardRepository extends JpaRepository<BoardEntity,Long> {
             String title, String content, String author, Pageable pageable
     );
     Page<BoardEntity> findByPlayerId(Long playerId, Pageable pageable);
+    Page<BoardEntity> findByPlayerIdAndDeletedFalse(Long playerId, Pageable pageable);
 }
