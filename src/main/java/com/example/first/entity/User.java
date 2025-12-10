@@ -1,5 +1,6 @@
 package com.example.first.entity;
 
+import com.example.first.dto.UserResponseDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -57,5 +58,15 @@ public class User {
     }
     public void invalidateOAuthToken() {
         this.tokenVersion++;
+    }
+    public UserResponseDto toDto() {
+        UserResponseDto dto = new UserResponseDto();
+        dto.setId(id);
+        dto.setUsername(username);
+        dto.setPassword(password);
+        dto.setEmail(email);
+        dto.setProvider(provider);
+        dto.setProviderId(providerId);
+        return dto;
     }
 }

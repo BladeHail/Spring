@@ -132,6 +132,19 @@ public class AuthService {
                 username, user.getTokenVersion());
     }
 
+    @Transactional
+    public User getUser(String name) {
+        return userRepository.findByUsername(name).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public void delete(String name) {
+        User user = userRepository.findByUsername(name).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.logout();
+        userRepository.delete(user);
+        log.info("유저 " + user.getUsername() + " 삭제");
+    }
+
     @Transactional(readOnly = true)
     public String getLoginDirection(AuthProvider type) {
         String url;
