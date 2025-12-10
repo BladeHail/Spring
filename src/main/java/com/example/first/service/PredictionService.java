@@ -101,7 +101,14 @@ public class PredictionService {
 
         return new PredictionStats(totalPredictions, completedMatches, correctPredictions);
     }
-
+    public MatchResult getPreviousPrediction(Long userId, Long matchId) {
+        Match match = matchService.getMatchById(matchId);
+        Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
+        if(existingPrediction.isPresent()) {
+            return existingPrediction.get().getPredictedResult();
+        }
+        else return MatchResult.NONE;
+    }
     private boolean isValidResult(String result) {
         try {
             MatchResult.valueOf(result);
@@ -110,7 +117,6 @@ public class PredictionService {
             return false;
         }
     }
-
     @Getter
     @AllArgsConstructor
     public static class PredictionStats {

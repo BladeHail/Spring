@@ -31,7 +31,8 @@ public class PredictionController {
         return matchService.getPredictableMatches().stream()
                 .map(match -> MatchDto.fromEntity(
                         match,
-                        predictionService.hasUserPredicted(userId, match.getId())
+                        predictionService.hasUserPredicted(userId, match.getId()),
+                        predictionService.getPreviousPrediction(userId, match.getId())
                 ))
                 .toList();
     }

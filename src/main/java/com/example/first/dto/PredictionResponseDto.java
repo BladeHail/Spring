@@ -7,9 +7,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-import static com.example.first.entity.MatchResult.AWAY_WIN;
-import static com.example.first.entity.MatchResult.HOME_WIN;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -66,13 +63,10 @@ public class PredictionResponseDto {
                 .build();
     }
     private static String getResultText(MatchResult result, String teamA, String teamB) {
-        switch (result) {
-            case HOME_WIN:
-                return teamA + " 승리";
-            case AWAY_WIN:
-                return teamB + " 승리";
-            default:
-                return "알 수 없음";
-        }
+        return switch (result) {
+            case HOME_WIN -> teamA + " 승리";
+            case AWAY_WIN -> teamB + " 승리";
+            default -> "알 수 없음";
+        };
     }
 }

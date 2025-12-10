@@ -1,6 +1,7 @@
 package com.example.first.dto;
 
 import com.example.first.entity.Match;
+import com.example.first.entity.MatchResult;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,8 +20,9 @@ public class MatchDto {
     private String description;
     private boolean predictionOpen;
     private boolean alreadyPredicted;
+    private MatchResult yourPrevResult;
 
-    public static MatchDto fromEntity(Match match, boolean alreadyPredicted) {
+    public static MatchDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result) {
         return MatchDto.builder()
                 .id(match.getId())
                 .teamA(match.getTeamA())
@@ -29,6 +31,7 @@ public class MatchDto {
                 .description(match.getDescription())
                 .predictionOpen(match.isPredictionOpen())
                 .alreadyPredicted(alreadyPredicted)
+                .yourPrevResult(result)
                 .build();
     }
 }
