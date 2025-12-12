@@ -25,8 +25,10 @@ public class PredictionResponseDto {
     private String actualResultText;
     private Boolean isCorrect;
     private String matchStatus;
+    private int homePercent;
+    private int awayPercent;
 
-    public static PredictionResponseDto fromEntity(Prediction prediction) {
+    public static PredictionResponseDto fromEntity(Prediction prediction, int homePercent, int awayPercent) {
         Match match = prediction.getMatch();
         String predictedText = prediction.getResultText();
 
@@ -60,6 +62,8 @@ public class PredictionResponseDto {
                 .actualResultText(actualText)
                 .isCorrect(prediction.isCorrect())
                 .matchStatus(status)
+                .homePercent(homePercent)
+                .awayPercent(awayPercent)
                 .build();
     }
     private static String getResultText(MatchResult result, String teamA, String teamB) {

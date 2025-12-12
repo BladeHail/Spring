@@ -1,5 +1,6 @@
 package com.example.first.service;
 
+
 import com.example.first.dto.PredictionRequestDto;
 import com.example.first.dto.PredictionResponseDto;
 import com.example.first.entity.Match;
@@ -30,8 +31,12 @@ public class PredictionService {
     private final MatchService matchService;
     private final UserRepository userRepository;
 
+    /**
+     * 승부 예측 투표 (생성 또는 수정)
+     * 투표 후 최신 투표율이 포함된 DTO를 반환합니다.
+     */
     @Transactional
-    public Prediction createPrediction(Long userId, PredictionRequestDto requestDto) {
+    public PredictionResponseDto createPrediction(Long userId, PredictionRequestDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
@@ -43,7 +48,6 @@ public class PredictionService {
         }
 
         // 2. 경기 시작 10분 전 마감 체크
-        // 경기 시간 10분 전 시간 구하기
         LocalDateTime deadline = match.getMatchDate().minusMinutes(10);
         if (LocalDateTime.now().isAfter(deadline)) {
             throw new IllegalStateException("경기 시작 10분 전까지만 예측(수정)할 수 있습니다.");
@@ -75,21 +79,63 @@ public class PredictionService {
             log.info("예측 생성: userId={}, matchId={}, result={}", userId, match.getId(), newResult);
         }
 
-        return predictionRepository.save(prediction);
+        Prediction savedPrediction = predictionRepository.save(prediction);
+
+        // 5. [추가] 투표 직후 그래프 갱신을 위해 최신 퍼센트 계산
+        long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
+        long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
+
+        int homePercent = calculatePercent(homeVotes, awayVotes);
+        int awayPercent = (homeVotes + awayVotes == 0) ? 50 : (100 - homePercent);
+
+        // 6. 퍼센트 정보가 담긴 DTO 반환
+        return PredictionResponseDto.fromEntity(savedPrediction, homePercent, awayPercent);
     }
 
+    /**
+     * 내 예측 목록 조회
+     */
     public List<PredictionResponseDto> getUserPredictions(Long userId) {
         List<Prediction> predictions = predictionRepository.findByUserIdOrderByPredictedAtDesc(userId);
+
         return predictions.stream()
-                .map(PredictionResponseDto::fromEntity)
+                .map(prediction -> {
+                    // 각 경기의 현재 투표율 계산
+                    Match match = prediction.getMatch();
+                    long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
+                    long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
+
+                    int homePercent = calculatePercent(homeVotes, awayVotes);
+                    int awayPercent = (homeVotes + awayVotes == 0) ? 50 : (100 - homePercent);
+
+                    // DTO 변환 (퍼센트 포함)
+                    return PredictionResponseDto.fromEntity(prediction, homePercent, awayPercent);
+                })
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 특정 경기 투표 여부 확인
+     */
     public boolean hasUserPredicted(Long userId, Long matchId) {
         Match match = matchService.getMatchById(matchId);
         return predictionRepository.existsByUserIdAndMatch(userId, match);
     }
 
+    /**
+     * 특정 경기 이전 예측 결과 조회
+     */
+    public MatchResult getPreviousPrediction(Long userId, Long matchId) {
+        Match match = matchService.getMatchById(matchId);
+        Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
+
+        return existingPrediction.map(Prediction::getPredictedResult)
+                .orElse(MatchResult.NONE);
+    }
+
+    /**
+     * 사용자 예측 통계 (전적, 승률)
+     */
     public PredictionStats getUserStats(Long userId) {
         long totalPredictions = predictionRepository.countByUserId(userId);
         long completedMatches = predictionRepository.countByUserIdAndMatch_ActualResultNotNull(userId);
@@ -101,14 +147,12 @@ public class PredictionService {
 
         return new PredictionStats(totalPredictions, completedMatches, correctPredictions);
     }
-    public MatchResult getPreviousPrediction(Long userId, Long matchId) {
-        Match match = matchService.getMatchById(matchId);
-        Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
-        if(existingPrediction.isPresent()) {
-            return existingPrediction.get().getPredictedResult();
-        }
-        else return MatchResult.NONE;
-    }
+
+    // --- 내부 유틸 메서드 ---
+
+    /**
+     * Enum 문자열 검증
+     */
     private boolean isValidResult(String result) {
         try {
             MatchResult.valueOf(result);
@@ -117,6 +161,21 @@ public class PredictionService {
             return false;
         }
     }
+
+    /**
+     * 퍼센트 계산기 (0으로 나누기 방지)
+     */
+    private int calculatePercent(long homeVotes, long awayVotes) {
+        long total = homeVotes + awayVotes;
+        if (total == 0) {
+            return 50; // 투표가 하나도 없으면 50:50 표시
+        }
+        // 정수 나눗셈 오차 방지를 위해 double 캐스팅 후 계산
+        return (int) ((double) homeVotes / total * 100);
+    }
+
+    // --- DTO/Inner Class ---
+
     @Getter
     @AllArgsConstructor
     public static class PredictionStats {
