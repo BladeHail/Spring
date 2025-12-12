@@ -12,7 +12,7 @@ public interface BoardRepository extends JpaRepository<BoardEntity,Long> {
     List<BoardEntity> findAllByOrderByViewsDesc(); // 조회수순 조회
     List<BoardEntity> findByPlayerIdOrderByCreatedAtDesc(Long playerId); // 선수별 응원글
     List<BoardEntity> findByDeletedFalse();
-    List<BoardEntity> findByAuthor(String author);
+    List<BoardEntity> findByAuthorAndDeletedFalse(String author);
     Page<BoardEntity> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrAuthorContainingIgnoreCase(
             String title, String content, String author, Pageable pageable
     );

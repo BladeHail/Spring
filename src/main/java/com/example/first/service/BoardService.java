@@ -75,7 +75,7 @@ public class BoardService {
         boardRepository.save(boardEntity);
     }
     public List<BoardDto> findMy(String name) {
-        List<BoardEntity> boards = boardRepository.findByAuthor(name);
+        List<BoardEntity> boards = boardRepository.findByAuthorAndDeletedFalse(name);
         List<BoardDto> dtos = new ArrayList<>();
         for(BoardEntity boardEntity : boards) {
             dtos.add(boardEntity.asDto());
