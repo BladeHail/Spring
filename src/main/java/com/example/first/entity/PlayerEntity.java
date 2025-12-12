@@ -1,5 +1,6 @@
 package com.example.first.entity;
 
+import com.example.first.dto.PlayerDto;
 import jakarta.persistence.*;
 import lombok.*;
 
