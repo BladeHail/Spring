@@ -65,8 +65,7 @@ public class PredictionController {
         }
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof PrincipalDetails) {
-            PrincipalDetails principalDetails = (PrincipalDetails) principal;
+        if (principal instanceof PrincipalDetails principalDetails) {
             return principalDetails.getUser().getId();
         }
         throw new IllegalStateException("지원하지 않는 인증 방식이거나 사용자 정보를 찾을수 없습니다.");

@@ -1,5 +1,6 @@
 package com.example.first.service;
 
+import com.example.first.dto.BoardDto;
 import com.example.first.dto.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
 import com.example.first.entity.PlayerEntity;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -72,7 +74,14 @@ public class BoardService {
         boardEntity.setDeleted(true);
         boardRepository.save(boardEntity);
     }
-
+    public List<BoardDto> findMy(String name) {
+        List<BoardEntity> boards = boardRepository.findByAuthor(name);
+        List<BoardDto> dtos = new ArrayList<>();
+        for(BoardEntity boardEntity : boards) {
+            dtos.add(boardEntity.asDto());
+        }
+        return dtos;
+    }
     public List<BoardEntity> listByLatest() {
         return boardRepository.findAllByOrderByCreatedAtDesc();
     }

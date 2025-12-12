@@ -1,5 +1,6 @@
 package com.example.first.entity;
 
+import com.example.first.dto.BoardDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,5 +49,17 @@ public class BoardEntity {
         this.content = content;
         this.author = author;
         this.media = media;
+    }
+    public BoardDto asDto() {
+        BoardDto dto = new BoardDto();
+        dto.setId(id);
+        dto.setTitle(this.title);
+        dto.setContent(this.content);
+        dto.setAuthor(this.author);
+        dto.setMedia(this.media);
+        dto.setViews(this.views);
+        dto.setCreatedAt(this.createdAt);
+        dto.setUpdatedAt(this.updatedAt);
+        return dto;
     }
 }

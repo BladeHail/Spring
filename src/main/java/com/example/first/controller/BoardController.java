@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
@@ -67,7 +68,18 @@ public class BoardController {
     public BoardDto detail(@PathVariable Long id) {
         return toDto(boardService.findById(id));
     }
-
+    @GetMapping("/my")
+    public ResponseEntity<List<BoardDto>> getMy(Authentication auth) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Optional<User> user = userRepository.findByEmail(auth.getName());
+        if(user.isPresent()) {
+            List<BoardDto> boarder = boardService.findMy(auth.getName());
+            return new ResponseEntity<>(boarder, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
     // 게시글 수정
     @PutMapping("/{id}")
     public ResponseEntity<String> update(Authentication auth,
