@@ -1,8 +1,10 @@
 package com.example.first.service;
 
+import com.example.first.dto.MatchDto;
 import com.example.first.entity.Match;
 import com.example.first.entity.MatchResult;
 import com.example.first.repository.MatchRepository;
+import com.example.first.repository.PredictionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +29,9 @@ class MatchServiceTest {
 
     @Mock
     private MatchRepository matchRepository;
+
+    @Mock
+    private PredictionRepository predictionRepository;
 
     @InjectMocks
     private MatchService matchService;
@@ -50,14 +56,16 @@ class MatchServiceTest {
         // given
         List<Match> matches = Arrays.asList(match);
         when(matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc()).thenReturn(matches);
+        given(predictionRepository.countVotes(any(), any())).willReturn(0L);
 
         // when
-        List<Match> result = matchService.getPredictableMatches();
+        List<MatchDto> result = matchService.getPredictableMatches(null);
 
         // then
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).isPredictionOpen()).isTrue();
+        assertThat(result.get(0).getTeamA()).isEqualTo("한국");
 
         verify(matchRepository).findByPredictionOpenTrueOrderByMatchDateAsc();
     }
@@ -68,13 +76,16 @@ class MatchServiceTest {
         // given
         List<Match> matches = Arrays.asList(match);
         when(matchRepository.findAllByOrderByMatchDateDesc()).thenReturn(matches);
+        given(predictionRepository.countVotes(any(), any())).willReturn(0L);
 
         // when
-        List<Match> result = matchService.getAllMatches();
+        List<MatchDto> result = matchService.getAllMatches(null);
 
         // then
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTeamA()).isEqualTo("한국"); // 팀 이름 확인
+        assertThat(result.get(0).getHomePercent()).isEqualTo(50);
 
         verify(matchRepository).findAllByOrderByMatchDateDesc();
     }
@@ -144,5 +155,35 @@ class MatchServiceTest {
 
         verify(matchRepository).findById(1L);
         verify(matchRepository).save(any(Match.class));
+    }
+    @Test
+    @DisplayName("승부예측 그래프 비율 계산 테스트")
+    void testGraphPercentages() {
+        // 테스트용 경기 객체 하나 생성
+        List<Match> matches = Arrays.asList(match);
+
+        // 경기 목록 가져오기
+        given(matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc()).willReturn(matches);
+
+        //가짜 투표 데이터
+        // 7
+        given(predictionRepository.countVotes(any(), eq(MatchResult.HOME_WIN))).willReturn(7L);
+        // 3
+        given(predictionRepository.countVotes(any(), eq(MatchResult.AWAY_WIN))).willReturn(3L);
+
+        // 2.실행
+        List<MatchDto> result = matchService.getPredictableMatches(null);
+
+        // 3.검증
+        MatchDto dto = result.get(0);
+
+        // 전체 10표 중 7표니까 70
+        assertThat(dto.getHomePercent()).isEqualTo(70);
+
+        // 전체 10표 중 3표니까 30
+        assertThat(dto.getAwayPercent()).isEqualTo(30);
+
+        System.out.println("A팀 비율: " + dto.getHomePercent() + "%"); // 70%
+        System.out.println("B팀 비율: " + dto.getAwayPercent() + "%"); // 30%
     }
 }

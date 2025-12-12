@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class MatchDto {
     private Long id;
+
     //여러 팀이 동시에 경기할 경우를 고려해야 함
     private String teamA;
     private String teamB;
@@ -21,8 +22,12 @@ public class MatchDto {
     private boolean predictionOpen;
     private boolean alreadyPredicted;
     private MatchResult yourPrevResult;
+    //그래프용 데이터
+    private int homePercent;
+    private int awayPercent;
 
-    public static MatchDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result) {
+    public static MatchDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result,
+                                      int homePercent, int awayPercent) {
         return MatchDto.builder()
                 .id(match.getId())
                 .teamA(match.getTeamA())
@@ -32,6 +37,9 @@ public class MatchDto {
                 .predictionOpen(match.isPredictionOpen())
                 .alreadyPredicted(alreadyPredicted)
                 .yourPrevResult(result)
+                .homePercent(homePercent)
+                .awayPercent(awayPercent)
                 .build();
     }
+
 }

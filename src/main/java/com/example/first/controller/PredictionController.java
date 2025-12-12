@@ -28,35 +28,31 @@ public class PredictionController {
     @GetMapping("/matches")
     public List<MatchDto> getMatches(Authentication auth) {
         Long userId = getCurrentUserId(auth);
-        return matchService.getPredictableMatches().stream()
-                .map(match -> MatchDto.fromEntity(
-                        match,
-                        predictionService.hasUserPredicted(userId, match.getId()),
-                        predictionService.getPreviousPrediction(userId, match.getId())
-                ))
-                .toList();
+        //서비스 메서드만 호출
+        return matchService.getPredictableMatches(userId);
     }
 
+    // 2. 내 예측 내역
     @GetMapping("/my")
     public List<PredictionResponseDto> myPredictions(Authentication auth) {
         Long userId = getCurrentUserId(auth);
+        //서비스가 퍼센트로 계산해서 DTO로 보냄.
         return predictionService.getUserPredictions(userId);
     }
-
+    // 3. 통계
     @GetMapping("/stats")
     public PredictionService.PredictionStats stats(Authentication auth) {
         Long userId = getCurrentUserId(auth);
         return predictionService.getUserStats(userId);
     }
-
+    // 4. 예측 투표하기
     @PostMapping
     public PredictionResponseDto createPrediction(
             @RequestBody PredictionRequestDto dto,
             Authentication auth
     ) {
         Long userId = getCurrentUserId(auth);
-        var prediction = predictionService.createPrediction(userId, dto);
-        return PredictionResponseDto.fromEntity(prediction);
+        return predictionService.createPrediction(userId, dto);
     }
 
     private Long getCurrentUserId(Authentication authentication) {
