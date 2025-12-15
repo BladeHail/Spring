@@ -38,6 +38,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        log.info("Logging in");
         try {
             String token = authService.login(request);
 
