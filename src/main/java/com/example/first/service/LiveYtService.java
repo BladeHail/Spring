@@ -28,6 +28,8 @@ public class LiveYtService {
     @Value("#{'${youtube.target.keywords}'.split(',')}")
     private String[] targetKeywords;
 
+    private final boolean liveEnabled = false; //Make it false when developing
+
     private final RestTemplate ytTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,7 +45,7 @@ public class LiveYtService {
 
         // 서버 재기동 시, 이미 진행 중인 라이브 복구용 search.list (채널당 1회씩)
         try {
-            initCurrentLivesBySearch();
+            if(liveEnabled) initCurrentLivesBySearch();
         } catch (Exception e) {
             log.error("초기 라이브 검색 실패: {}", e.getMessage());
         }
@@ -115,7 +117,10 @@ public class LiveYtService {
             log.info("키워드 미일치로 콜백 무시: title={}", title);
             return;
         }
-
+        if(!liveEnabled) {
+            log.info("설정에 따라 콜백 무시");
+            return;
+        }
         synchronized (this) {
             List<LiveYtDto> copy = new ArrayList<>(currentLiveVideos);
             // 같은 videoId가 있다면 제거 후 다시 추가 (업데이트 개념)
@@ -136,7 +141,7 @@ public class LiveYtService {
     @Scheduled(fixedRate = 15000)
     public void refreshLiveStatusWithVideosApi() {
         List<LiveYtDto> snapshot = currentLiveVideos;
-        if (snapshot.isEmpty()) {
+        if (snapshot.isEmpty() || !liveEnabled) {
             return;
         }
 
