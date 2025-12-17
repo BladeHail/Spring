@@ -75,6 +75,7 @@ public class User {
     public UserResponseDto toDto() {
         UserResponseDto dto = new UserResponseDto();
         dto.setId(id);
+        dto.setAdmin(isAdmin);
         dto.setUsername(username);
         dto.setEmail(email);
         dto.setProvider(provider);

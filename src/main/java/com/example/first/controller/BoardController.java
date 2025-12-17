@@ -77,7 +77,7 @@ public class BoardController {
         if(auth == null || !auth.isAuthenticated()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        Optional<User> user = userRepository.findByEmail(auth.getName());
+        Optional<User> user = userRepository.findByUsername(auth.getName());
         if(user.isPresent()) {
             List<BoardDto> boarder = boardService.findMy(auth.getName());
             return new ResponseEntity<>(boarder, HttpStatus.OK);

@@ -53,6 +53,7 @@ public class BoardEntity {
     public BoardDto asDto() {
         BoardDto dto = new BoardDto();
         dto.setId(id);
+        dto.setPlayerId(player.getId());
         dto.setTitle(this.title);
         dto.setContent(this.content);
         dto.setAuthor(this.author);
