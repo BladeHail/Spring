@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    UserRepository userRepository;
+    private final UserRepository userRepository;
     public void updateUser(UserRequestDto dto) {
         User user = userRepository.findByUsername(dto.getUsername()).orElseThrow();
         user.updateDisplayName(dto.getDisplay());
