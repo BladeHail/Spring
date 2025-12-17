@@ -52,7 +52,7 @@ public class BoardService {
     public BoardEntity findById(Long id) {
         BoardEntity boardEntity = boardRepository.findById(id)
                 .orElseThrow(BoardNotFoundException::new);
-        boardEntity.setViews(boardEntity.getViews() + 1);
+        //boardEntity.setViews(boardEntity.getViews() + 1);
         return boardRepository.save(boardEntity);
     }
 

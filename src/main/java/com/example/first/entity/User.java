@@ -20,6 +20,9 @@ public class User {
     private String username;
 
     @Column
+    private String display;
+
+    @Column
     private String password;
 
     @Column
@@ -27,6 +30,9 @@ public class User {
 
     @Column(nullable = false)
     private boolean isAdmin = false;
+
+    @Column(nullable = false)
+    private Long point = 0L;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -44,6 +50,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.display = (email == null) ? username : email;
         this.provider = provider != null ? provider : AuthProvider.LOCAL;
         this.providerId = providerId;
         this.profileImage = profileImage;
@@ -52,6 +59,12 @@ public class User {
     public void updateOAuthInfo(String username, String profileImage) {
         this.username = username;
         this.profileImage = profileImage;
+    }
+    public void updateDisplayName(String displayName) {
+        this.display = displayName;
+    }
+    public void updatePoint(Long point) {
+        this.point = point;
     }
     public void logout() {
         this.tokenVersion++;

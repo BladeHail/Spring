@@ -65,9 +65,13 @@ public class BoardController {
 
     // 게시글 상세 조회 (조회수 증가)
     @GetMapping("/{id}")
-    public BoardDto detail(@PathVariable Long id) {
+    public BoardDto detail(Authentication auth,
+                           @PathVariable Long id
+    ) {
+        if(auth == null || !auth.isAuthenticated()) return null;
         return toDto(boardService.findById(id));
     }
+
     @GetMapping("/my")
     public ResponseEntity<List<BoardDto>> getMy(Authentication auth) {
         if(auth == null || !auth.isAuthenticated()) {
