@@ -16,4 +16,7 @@ public class PredictionRequestDto {
 
     @NotBlank(message = "예측 결과를 선택해주세요")
     private String predictedResult;
+
+    @NotBlank(message = "포인트를 입력해야 합니다")
+    private Long bet;
 }

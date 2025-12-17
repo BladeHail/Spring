@@ -20,6 +20,11 @@ public interface PredictionRepository extends JpaRepository<Prediction, Long> {
     long countByUserIdAndMatch_ActualResultNotNull(Long userId);
     boolean existsByUserIdAndMatch(Long userId, Match match);
 
-    @Query("SELECT COUNT(p) FROM Prediction p WHERE p.match.id = :matchId AND p.predictedResult = :result")
+    @Query("""
+    SELECT COALESCE(SUM(p.bet), 0)
+    FROM Prediction p
+    WHERE p.match.id = :matchId
+      AND p.predictedResult = :result
+    """)
     long countVotes(@Param("matchId") Long matchId, @Param("result") MatchResult result);
 }

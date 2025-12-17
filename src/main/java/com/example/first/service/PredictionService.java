@@ -54,11 +54,12 @@ public class PredictionService {
         }
 
         // 3. 올바른 결과값인지 검증
-        if (!isValidResult(requestDto.getPredictedResult())) {
+        if (!isValidResult(requestDto.getPredictedResult()) || requestDto.getBet() <= 0) {
             throw new IllegalStateException("올바르지 않은 예측 결과입니다.");
         }
 
         MatchResult newResult = MatchResult.valueOf(requestDto.getPredictedResult());
+        Long bet = requestDto.getBet();
 
         // 4. 기존 예측 확인 (있으면 수정, 없으면 생성)
         Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
@@ -67,16 +68,18 @@ public class PredictionService {
         if (existingPrediction.isPresent()) {
             prediction = existingPrediction.get();
             prediction.setPredictedResult(newResult);
+            prediction.setBet(bet);
             prediction.setPredictedAt(LocalDateTime.now()); // 수정 시간 업데이트
-            log.info("예측 수정: userId={}, matchId={}, result={}", userId, match.getId(), newResult);
+            log.info("예측 수정: userId={}, matchId={}, result={}, bet={}", userId, match.getId(), newResult, bet);
         } else {
             prediction = Prediction.builder()
                     .user(user)
                     .match(match)
                     .predictedResult(newResult)
                     .predictedAt(LocalDateTime.now())
+                    .bet(bet)
                     .build();
-            log.info("예측 생성: userId={}, matchId={}, result={}", userId, match.getId(), newResult);
+            log.info("예측 생성: userId={}, matchId={}, result={}, bet={}", userId, match.getId(), newResult, bet);
         }
 
         Prediction savedPrediction = predictionRepository.save(prediction);
@@ -85,11 +88,8 @@ public class PredictionService {
         long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
         long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
 
-        int homePercent = calculatePercent(homeVotes, awayVotes);
-        int awayPercent = (homeVotes + awayVotes == 0) ? 50 : (100 - homePercent);
-
         // 6. 퍼센트 정보가 담긴 DTO 반환
-        return PredictionResponseDto.fromEntity(savedPrediction, homePercent, awayPercent);
+        return PredictionResponseDto.fromEntity(savedPrediction, homeVotes, awayVotes);
     }
 
     /**
@@ -100,16 +100,13 @@ public class PredictionService {
 
         return predictions.stream()
                 .map(prediction -> {
-                    // 각 경기의 현재 투표율 계산
+                    // 각 경기의 현재 투표량 계산
                     Match match = prediction.getMatch();
                     long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
                     long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
 
-                    int homePercent = calculatePercent(homeVotes, awayVotes);
-                    int awayPercent = (homeVotes + awayVotes == 0) ? 50 : (100 - homePercent);
-
                     // DTO 변환 (퍼센트 포함)
-                    return PredictionResponseDto.fromEntity(prediction, homePercent, awayPercent);
+                    return PredictionResponseDto.fromEntity(prediction, homeVotes, awayVotes);
                 })
                 .collect(Collectors.toList());
     }

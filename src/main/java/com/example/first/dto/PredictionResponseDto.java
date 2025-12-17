@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PredictionResponseDto {
+public class PredictionResponseDto { // implicitly extends MatchDto
     private Long id;
     private Long matchId;
     private String teamA;
@@ -25,10 +25,13 @@ public class PredictionResponseDto {
     private String actualResultText;
     private Boolean isCorrect;
     private String matchStatus;
-    private int homePercent;
-    private int awayPercent;
+    private long homeAmount;
+    private long awayAmount;
+    private String description;
+    private MatchResult yourPrevResult;
+    private long yourPrevBet;
 
-    public static PredictionResponseDto fromEntity(Prediction prediction, int homePercent, int awayPercent) {
+    public static PredictionResponseDto fromEntity(Prediction prediction, long homePercent, long awayPercent) {
         Match match = prediction.getMatch();
         String predictedText = prediction.getResultText();
 
@@ -62,8 +65,11 @@ public class PredictionResponseDto {
                 .actualResultText(actualText)
                 .isCorrect(prediction.isCorrect())
                 .matchStatus(status)
-                .homePercent(homePercent)
-                .awayPercent(awayPercent)
+                .homeAmount(homePercent)
+                .awayAmount(awayPercent)
+                .description(match.getDescription())
+                .yourPrevResult(prediction.getPredictedResult())
+                .yourPrevBet(prediction.getBet())
                 .build();
     }
     private static String getResultText(MatchResult result, String teamA, String teamB) {

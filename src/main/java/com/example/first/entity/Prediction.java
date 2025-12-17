@@ -27,6 +27,9 @@ public class Prediction {
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
+    @Column(nullable = false)
+    private Long bet = 1L;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private MatchResult predictedResult;

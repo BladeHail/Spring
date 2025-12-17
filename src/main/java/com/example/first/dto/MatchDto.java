@@ -22,12 +22,13 @@ public class MatchDto {
     private boolean predictionOpen;
     private boolean alreadyPredicted;
     private MatchResult yourPrevResult;
+    private long yourPrevBet;
     //그래프용 데이터
-    private int homePercent;
-    private int awayPercent;
+    private long homeAmount;
+    private long awayAmount;
 
     public static MatchDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result,
-                                      int homePercent, int awayPercent) {
+                                      long bet, long homePercent, long awayPercent) {
         return MatchDto.builder()
                 .id(match.getId())
                 .teamA(match.getTeamA())
@@ -37,8 +38,9 @@ public class MatchDto {
                 .predictionOpen(match.isPredictionOpen())
                 .alreadyPredicted(alreadyPredicted)
                 .yourPrevResult(result)
-                .homePercent(homePercent)
-                .awayPercent(awayPercent)
+                .yourPrevBet(bet)
+                .homeAmount(homePercent)
+                .awayAmount(awayPercent)
                 .build();
     }
 

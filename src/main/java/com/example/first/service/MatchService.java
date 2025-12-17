@@ -64,27 +64,25 @@ public class MatchService {
     private List<MatchDto> convertToDtoList(List<Match> matches, Long userId) {
         return matches.stream().map(match -> {
             //1.DB에서 투표 수 집계
-            long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
-            long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
+            long homePercent = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
+            long awayPercent = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
 
-            //2. 퍼센트 계산 (0으로 나누기 방지)
-            int homePercent = calculatePercent(homeVotes, awayVotes);
-            int awayPercent = (homeVotes + awayVotes == 0) ? 50 : (100 - homePercent);
-
-            //3. 유저의 예측 정보 확인 (로그인한 경우)
+            //2. 유저의 예측 정보 확인 (로그인한 경우)
             boolean alreadyPredicted = false;
+            long bet = 1;
             MatchResult myResult = MatchResult.NONE;
 
             if (userId != null) {
                 Optional<Prediction> prediction = predictionRepository.findByUserIdAndMatch(userId, match);
                 if (prediction.isPresent()) {
                     alreadyPredicted = true;
+                    bet = prediction.get().getBet();
                     myResult = prediction.get().getPredictedResult();
                 }
             }
 
-            // 4.DTO 생성 (퍼센트 포함)
-            return MatchDto.fromEntity(match, alreadyPredicted, myResult, homePercent, awayPercent);
+            // 3.DTO 생성 (퍼센트 포함)
+            return MatchDto.fromEntity(match, alreadyPredicted, myResult, bet, homePercent, awayPercent);
         }).collect(Collectors.toList());
     }
 
