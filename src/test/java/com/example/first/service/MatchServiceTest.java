@@ -1,6 +1,6 @@
 package com.example.first.service;
 
-import com.example.first.dto.MatchDto;
+import com.example.first.dto.MatchResponseDto;
 import com.example.first.entity.Match;
 import com.example.first.entity.MatchResult;
 import com.example.first.repository.MatchRepository;
@@ -55,11 +55,11 @@ class MatchServiceTest {
     void getPredictableMatches() {
         // given
         List<Match> matches = Arrays.asList(match);
-        when(matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc()).thenReturn(matches);
+        when(matchRepository.findByPredictionOpenTrueOrderByIdAsc()).thenReturn(matches);
         given(predictionRepository.countVotes(any(), any())).willReturn(0L);
 
         // when
-        List<MatchDto> result = matchService.getPredictableMatches(null);
+        List<MatchResponseDto> result = matchService.getPredictableMatches(null);
 
         // then
         assertThat(result).isNotEmpty();
@@ -67,7 +67,7 @@ class MatchServiceTest {
         assertThat(result.get(0).isPredictionOpen()).isTrue();
         assertThat(result.get(0).getTeamA()).isEqualTo("한국");
 
-        verify(matchRepository).findByPredictionOpenTrueOrderByMatchDateAsc();
+        verify(matchRepository).findByPredictionOpenTrueOrderByIdAsc();
     }
 
     @Test
@@ -75,11 +75,11 @@ class MatchServiceTest {
     void getAllMatches() {
         // given
         List<Match> matches = Arrays.asList(match);
-        when(matchRepository.findAllByOrderByMatchDateDesc()).thenReturn(matches);
+        when(matchRepository.findAllByOrderByIdDesc()).thenReturn(matches);
         given(predictionRepository.countVotes(any(), any())).willReturn(0L);
 
         // when
-        List<MatchDto> result = matchService.getAllMatches(null);
+        List<MatchResponseDto> result = matchService.getAllMatches(null);
 
         // then
         assertThat(result).isNotEmpty();
@@ -87,7 +87,7 @@ class MatchServiceTest {
         assertThat(result.get(0).getTeamA()).isEqualTo("한국"); // 팀 이름 확인
         assertThat(result.get(0).getHomePercent()).isEqualTo(50);
 
-        verify(matchRepository).findAllByOrderByMatchDateDesc();
+        verify(matchRepository).findAllByOrderByIdDesc();
     }
 
     @Test
@@ -163,7 +163,7 @@ class MatchServiceTest {
         List<Match> matches = Arrays.asList(match);
 
         // 경기 목록 가져오기
-        given(matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc()).willReturn(matches);
+        given(matchRepository.findByPredictionOpenTrueOrderByIdAsc()).willReturn(matches);
 
         //가짜 투표 데이터
         // 7
@@ -172,10 +172,10 @@ class MatchServiceTest {
         given(predictionRepository.countVotes(any(), eq(MatchResult.AWAY_WIN))).willReturn(3L);
 
         // 2.실행
-        List<MatchDto> result = matchService.getPredictableMatches(null);
+        List<MatchResponseDto> result = matchService.getPredictableMatches(null);
 
         // 3.검증
-        MatchDto dto = result.get(0);
+        MatchResponseDto dto = result.get(0);
 
         // 전체 10표 중 7표니까 70
         assertThat(dto.getHomePercent()).isEqualTo(70);

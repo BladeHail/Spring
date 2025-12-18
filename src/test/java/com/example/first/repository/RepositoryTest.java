@@ -115,7 +115,7 @@ class RepositoryTest {
         entityManager.flush();
 
         // when
-        List<Match> openMatches = matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc();
+        List<Match> openMatches = matchRepository.findByPredictionOpenTrueOrderByIdAsc();
 
         // then
         assertThat(openMatches).hasSize(1);
@@ -137,7 +137,7 @@ class RepositoryTest {
         entityManager.flush();
 
         // when
-        List<Match> matches = matchRepository.findAllByOrderByMatchDateDesc();
+        List<Match> matches = matchRepository.findAllByOrderByIdDesc();
 
         // then
         assertThat(matches).hasSize(2);

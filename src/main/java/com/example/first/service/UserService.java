@@ -7,6 +7,8 @@ import com.example.first.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -15,5 +17,8 @@ public class UserService {
         User user = userRepository.findByUsername(dto.getUsername()).orElseThrow();
         user.updateDisplayName(dto.getDisplay());
         userRepository.save(user);
+    }
+    public Optional<User> findUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 }

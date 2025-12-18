@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MatchDto {
+public class MatchResponseDto {
     private Long id;
 
     //여러 팀이 동시에 경기할 경우를 고려해야 함
@@ -27,9 +27,9 @@ public class MatchDto {
     private long homeAmount;
     private long awayAmount;
 
-    public static MatchDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result,
-                                      long bet, long homePercent, long awayPercent) {
-        return MatchDto.builder()
+    public static MatchResponseDto fromEntity(Match match, boolean alreadyPredicted, MatchResult result,
+                                              long bet, long homePercent, long awayPercent) {
+        return MatchResponseDto.builder()
                 .id(match.getId())
                 .teamA(match.getTeamA())
                 .teamB(match.getTeamB())

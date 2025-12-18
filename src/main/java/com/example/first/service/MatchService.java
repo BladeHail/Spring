@@ -1,6 +1,7 @@
 package com.example.first.service;
 
-import com.example.first.dto.MatchDto;
+import com.example.first.dto.MatchRequestDto;
+import com.example.first.dto.MatchResponseDto;
 import com.example.first.entity.Match;
 import com.example.first.entity.MatchResult;
 import com.example.first.entity.Prediction;
@@ -24,14 +25,14 @@ public class MatchService {
     private final PredictionRepository predictionRepository; // [필수] 투표 집계용
 
     // 1. 경기 목록 조회 (예측 가능한 경기들) - 메인 화면 등
-    public List<MatchDto> getPredictableMatches(Long userId) {
-        List<Match> matches = matchRepository.findByPredictionOpenTrueOrderByMatchDateAsc();
+    public List<MatchResponseDto> getPredictableMatches(Long userId) {
+        List<Match> matches = matchRepository.findByPredictionOpenTrueOrderByIdAsc();
         return convertToDtoList(matches, userId);
     }
 
     // 2. 전체 경기 목록 조회 - 관리자 페이지 또는 전체 목록
-    public List<MatchDto> getAllMatches(Long userId) {
-        List<Match> matches = matchRepository.findAllByOrderByMatchDateDesc();
+    public List<MatchResponseDto> getAllMatches(Long userId) {
+        List<Match> matches = matchRepository.findAllByOrderByIdDesc();
         return convertToDtoList(matches, userId);
     }
 
@@ -58,10 +59,20 @@ public class MatchService {
         return matchRepository.save(match);
     }
 
+    @Transactional
+    public void updateMatch(MatchRequestDto dto) {
+        Match match = getMatchById(dto.getId());
+        match.setActualResult(dto.getResult());
+        match.setMatchDate(dto.getMatchDate());
+        match.setPredictionOpen(dto.isPredictionOpen());
+        log.info("경기 결과 입력: {} {} {}", dto.getMatchDate(), dto.getResult(), dto.isPredictionOpen());
+        matchRepository.save(match);
+    }
+
     // --- 내부 헬퍼 메서드 ---
 
     // [공통 로직] Entity 리스트 -> DTO 리스트 변환 (투표율 계산 포함)
-    private List<MatchDto> convertToDtoList(List<Match> matches, Long userId) {
+    private List<MatchResponseDto> convertToDtoList(List<Match> matches, Long userId) {
         return matches.stream().map(match -> {
             //1.DB에서 투표 수 집계
             long homePercent = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
@@ -82,18 +93,8 @@ public class MatchService {
             }
 
             // 3.DTO 생성 (퍼센트 포함)
-            return MatchDto.fromEntity(match, alreadyPredicted, myResult, bet, homePercent, awayPercent);
+            return MatchResponseDto.fromEntity(match, alreadyPredicted, myResult, bet, homePercent, awayPercent);
         }).collect(Collectors.toList());
-    }
-
-    // [계산기] 퍼센트 계산 유틸
-    private int calculatePercent(long homeVotes, long awayVotes) {
-        long total = homeVotes + awayVotes;
-        if (total == 0) {
-            return 50; // 투표가 없으면 50:50으로 표시
-        }
-        // 정수 나눗셈 오차 방지를 위해 double 캐스팅
-        return (int) ((double) homeVotes / total * 100);
     }
 }
 
