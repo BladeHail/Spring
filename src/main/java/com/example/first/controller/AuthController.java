@@ -2,7 +2,6 @@ package com.example.first.controller;
 
 import com.example.first.dto.AuthRequest;
 import com.example.first.dto.AuthResponse;
-import com.example.first.dto.OAthClientInfo;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
@@ -13,9 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -77,31 +73,6 @@ public class AuthController {
     @GetMapping("/login/naver")
     public void naverLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect(authService.getLoginDirection(AuthProvider.NAVER));
-    }
-
-    @GetMapping("/client-info")
-    public List<OAthClientInfo> getClientInfo(){
-        List<OAthClientInfo> infoList = new ArrayList<>();
-
-        infoList.add(new OAthClientInfo(
-                "google",
-                "254999034916-61o7vuis0demhdt8jrb1210d92r8o8nn.apps.googleusercontent.com",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        infoList.add(new OAthClientInfo(
-                "kakao",
-                "454f615976d86f74a3fcaabb05dca4d0",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        infoList.add(new OAthClientInfo(
-                "naver",
-                "kDWLjaWlRgT9xuspYkRQ",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        return infoList;
     }
     // Handle OAuth
     @GetMapping("/oauth2/code/google")

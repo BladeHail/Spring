@@ -242,6 +242,7 @@ public class AuthService {
                 .password(passwordEncoder.encode((UUID.randomUUID().toString() + UUID.randomUUID())))
                 .provider(AuthProvider.GOOGLE)
                 .providerId(googleUser.getSub()) // Google의 고유 ID
+                .point(0L)
                 .build();
         //password is null
         User savedUser = userRepository.save(newUser);
@@ -322,6 +323,7 @@ public class AuthService {
                 .provider(AuthProvider.KAKAO)
                 .providerId(kakaoUser.getProviderId())
                 .profileImage(kakaoUser.getProfileImage())
+                .point(0L)
                 .build();
         return userRepository.save(newUser);
     }
@@ -385,6 +387,7 @@ public class AuthService {
                 .provider(AuthProvider.NAVER)
                 .providerId(naverUser.getProviderId())
                 .profileImage(naverUser.getProfileImage())
+                .point(0L)
                 .build();
         return userRepository.save(newUser);
     }
