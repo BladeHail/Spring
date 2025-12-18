@@ -2,6 +2,7 @@ package com.example.first.service;
 
 import com.example.first.dto.NaverNewsDto;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.text.similarity.JaccardSimilarity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +14,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,7 @@ public class NaverNewsService {
         // 1. URI 생성 (쿼리 파라미터 인코딩 처리)
         URI uri = UriComponentsBuilder.fromHttpUrl(naverUrl)
                 .queryParam("query", keyword)
-                .queryParam("display", 20) //뉴스를 보여주는 위치에 따라 보여줄 뉴스 개수 변경
+                .queryParam("display", 40) //뉴스를 보여주는 위치에 따라 보여줄 뉴스 개수 변경
                 .queryParam("sort", "date") //최신순 정렬
                 .encode(StandardCharsets.UTF_8)
                 .build()
@@ -58,43 +57,64 @@ public class NaverNewsService {
         if (dto != null && dto.getItems() != null) {
             // 중복되지 않은 뉴스만 담을 새로운 리스트
             List<NaverNewsDto.Item> filteredItems = new ArrayList<>();
-            // 이미 나온 제목을 기억할 Set
-            Set<String> seenTitles = new HashSet<>();
+            List<String> seenTitles = new ArrayList<>();
+
+            JaccardSimilarity similarity = new JaccardSimilarity();
+            double THRESHOLD = 0.6; // 이후 직접 조정
 
             int id = 0;
 
             for (NaverNewsDto.Item item : dto.getItems()) {
 
-                if (filteredItems.size() >= 20) {
+                if (filteredItems.size() >= 40) {
                     break;
                 }
 
-                // (1) HTML 태그 제거 및 디코딩 (비교를 위해 먼저 수행)
+                // HTML 제거 + 디코딩
                 String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
                 cleanTitle = StringEscapeUtils.unescapeHtml4(cleanTitle);
 
                 String cleanDesc = item.getDescription().replaceAll("<[^>]*>", "");
                 cleanDesc = StringEscapeUtils.unescapeHtml4(cleanDesc);
 
-                // (2) 중복 검사: 이미 본 제목이면 건너뛰기
-                if (seenTitles.contains(cleanTitle)) {
+                // 정규화
+                String normalizedTitle = normalizeTitle(cleanTitle);
+
+                boolean isDuplicate = false;
+
+                for (String seen : seenTitles) {
+                    double score = similarity.apply(normalizedTitle, seen);
+                    if (score >= THRESHOLD) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (isDuplicate) {
                     continue;
                 }
 
-                // (3) 새로운 뉴스라면 Set에 추가하고 리스트에 담기
-                seenTitles.add(cleanTitle); // 제목 기억하기
+                // 새로운 뉴스로 확정
+                seenTitles.add(normalizedTitle);
 
                 item.setTitle(cleanTitle);
                 item.setDescription(cleanDesc);
-                item.setId(id++); // 중복이 아닌 경우에만 ID 증가
+                item.setId(id++);
 
-                filteredItems.add(item); // 결과 리스트에 추가
+                filteredItems.add(item);
             }
-
             // (4) 원본 리스트를 중복 제거된 리스트로 교체
             dto.setItems(filteredItems);
         }
 
         return dto;
     }
+    private String normalizeTitle(String title) {
+        return title
+                .toLowerCase()
+                .replaceAll("[^a-z0-9가-힣\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
 }
