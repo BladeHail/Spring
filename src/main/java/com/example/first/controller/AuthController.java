@@ -3,7 +3,6 @@ package com.example.first.controller;
 import com.example.first.dto.AuthRequest;
 import com.example.first.dto.AuthResponse;
 import com.example.first.dto.OAthClientInfo;
-import com.example.first.dto.UserResponseDto;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
@@ -37,23 +36,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         log.info("Logging in");
         try {
-            String token = authService.login(request);
-
-            AuthResponse response = new AuthResponse(
-                    token,
-                    request.getUsername(),
-                    "로그인 성공 및 토큰 발급"
-            );
-
-            return ResponseEntity.ok(response);
+            AuthResponse res = authService.login(request);
+            if(res != null) return new ResponseEntity<>(res, HttpStatus.OK);
+            return new ResponseEntity<>("Not right user", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(
-                    new AuthResponse(null, request.getUsername(), "로그인 실패: 사용자 이름 또는 비밀번호 불일치"),
-                    HttpStatus.UNAUTHORIZED
-            );
+            return new ResponseEntity<>("NO", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -71,19 +61,6 @@ public class AuthController {
         } catch (Exception e) {
             log.error("로그아웃 실패", e);
             return new ResponseEntity<>("로그아웃 처리 중 오류가 발생했습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    @GetMapping("/checkToken")
-    public ResponseEntity<String> checkToken(Authentication authentication) {
-        try {
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
-            }
-            return new ResponseEntity<>("유효한 JWT", HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("토큰 확인 실패", e);
-            return new ResponseEntity<>("토큰 확인 중 오류가 발생했습니다.",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

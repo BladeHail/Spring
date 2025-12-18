@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +38,7 @@ public class PredictionService {
      * 투표 후 최신 투표율이 포함된 DTO를 반환합니다.
      */
     @Transactional
-    public PredictionResponseDto createPrediction(Long userId, PredictionRequestDto requestDto) {
+    public ResponseEntity<?> createPrediction(Long userId, PredictionRequestDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
@@ -44,23 +46,22 @@ public class PredictionService {
 
         // 1. 관리자가 수동으로 마감했는지 체크
         if (!match.isPredictionOpen()) {
-            throw new IllegalStateException("예측이 마감된 경기입니다.");
+            return new ResponseEntity<>("예측 마감", HttpStatus.BAD_REQUEST);
         }
 
         // 2. 경기 시작 10분 전 마감 체크
         LocalDateTime deadline = match.getMatchDate().minusMinutes(10);
         if (LocalDateTime.now().isAfter(deadline)) {
-            throw new IllegalStateException("경기 시작 10분 전까지만 예측(수정)할 수 있습니다.");
+            return new ResponseEntity<>("너무 늦었습니다", HttpStatus.BAD_REQUEST);
         }
 
         // 3. 올바른 결과값인지 검증
         if (!isValidResult(requestDto.getPredictedResult()) || requestDto.getBet() <= 0) {
-            throw new IllegalStateException("올바르지 않은 예측 결과입니다.");
+            return new ResponseEntity<>("잘못된 예측", HttpStatus.BAD_REQUEST);
         }
 
         MatchResult newResult = MatchResult.valueOf(requestDto.getPredictedResult());
-        Long bet = requestDto.getBet();
-
+        Long bet = Math.min(requestDto.getBet(), user.getPoint()); // 클라이언트 변조로 실제 포인트보다 많이 걸면 자동으로 조정
         // 4. 기존 예측 확인 (있으면 수정, 없으면 생성)
         Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
 
@@ -89,7 +90,7 @@ public class PredictionService {
         long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
 
         // 6. 퍼센트 정보가 담긴 DTO 반환
-        return PredictionResponseDto.fromEntity(savedPrediction, homeVotes, awayVotes);
+        return new ResponseEntity<>(PredictionResponseDto.fromEntity(savedPrediction, homeVotes, awayVotes), HttpStatus.OK);
     }
 
     /**

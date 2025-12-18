@@ -18,6 +18,8 @@ public class UserResponseDto {
 
     private boolean isAdmin = false;
 
+    private Long point;
+
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 }

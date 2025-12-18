@@ -17,11 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -90,22 +87,15 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .provider(AuthProvider.LOCAL)
+                .point(0L)
                 .build();
-
         return userRepository.save(newUser);
     }
 
-    public String login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
-            );
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
             String token = jwtTokenProvider.createToken(
                     user.getUsername(),
                     user.getTokenVersion()
@@ -113,10 +103,10 @@ public class AuthService {
             log.info("로그인 성공: username={}, tokenVersion={}",
                     user.getUsername(),
                     user.getTokenVersion());
-            return token;
+            return new AuthResponse(token, user.getUsername(), "로그인 성공", user.getPoint());
         } catch (AuthenticationException e) {
             log.warn("로그인 실패: {}", request.getUsername());
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            return null;
         }
     }
 
@@ -196,7 +186,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "OAuth 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "OAuth 로그인 성공", user.getPoint());
     }
 
 
@@ -275,7 +265,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "Kakao 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Kakao 로그인 성공", user.getPoint());
     }
 
     private String getKakaoAccessToken(String code) {
@@ -350,7 +340,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "Naver 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Naver 로그인 성공", user.getPoint());
     }
 
     private String getNaverAccessToken(String code, String state) {

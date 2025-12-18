@@ -32,7 +32,7 @@ public class User {
     private boolean isAdmin = false;
 
     @Column(nullable = false)
-    private Long point = 0L;
+    private Long point;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -46,7 +46,7 @@ public class User {
     private Long tokenVersion = 0L;
 
     @Builder
-    public User(String username, String password, String email, AuthProvider provider, String providerId, String profileImage) {
+    public User(String username, String password, String email, AuthProvider provider, String providerId, String profileImage, Long point) {
         this.username = username;
         this.password = password;
         this.email = email;
@@ -55,6 +55,7 @@ public class User {
         this.providerId = providerId;
         this.profileImage = profileImage;
         this.tokenVersion = 0L;
+        this.point = point;
     }
     public void updateOAuthInfo(String username, String profileImage) {
         this.username = username;
@@ -79,6 +80,7 @@ public class User {
         dto.setUsername(username);
         dto.setEmail(email);
         dto.setProvider(provider);
+        dto.setPoint(point);
         return dto;
     }
 }

@@ -58,7 +58,19 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-
+    @GetMapping("/checkToken")
+    public ResponseEntity<String> checkToken(Authentication auth) {
+        try {
+            if (isNotValid(auth)) {
+                System.out.println(auth);
+                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+            }
+            return new ResponseEntity<>("유효한 JWT", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("토큰 확인 중 오류가 발생했습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     private boolean isNotValid(Authentication auth) {
         return (auth == null || !auth.isAuthenticated());
