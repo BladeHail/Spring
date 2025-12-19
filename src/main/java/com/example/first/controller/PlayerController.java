@@ -61,4 +61,57 @@ public class PlayerController {
         return new ResponseEntity<>(id, HttpStatus.CREATED);
     }
 
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> fixPlayer(
+            Authentication authentication,
+            @RequestPart("player") PlayerRequestDto dto,
+            @RequestPart(value = "media", required = false) MultipartFile file
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String username = authentication.getName(); // logout에서 했던 것과 동일
+
+        // AuthService가 사용자 정보를 가져올 수 있다는 전제
+        User user = authService.loadUserByUsername(username);
+
+        if (user == null) {
+            return new ResponseEntity<>("사용자 정보를 찾을 수 없습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (!user.isAdmin()) {
+            return new ResponseEntity<>("관리자만 선수 등록이 가능합니다.", HttpStatus.FORBIDDEN);
+        }
+
+        Long id = playerService.fixPlayer(dto, file);
+        return new ResponseEntity<>(id, HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> fixPlayer(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String username = auth.getName(); // logout에서 했던 것과 동일
+
+        // AuthService가 사용자 정보를 가져올 수 있다는 전제
+        User user = authService.loadUserByUsername(username);
+
+        if (user == null) {
+            return new ResponseEntity<>("사용자 정보를 찾을 수 없습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (!user.isAdmin()) {
+            return new ResponseEntity<>("관리자만 선수 등록이 가능합니다.", HttpStatus.FORBIDDEN);
+        }
+
+        Long pid = playerService.deletePlayer(id);
+        return new ResponseEntity<>(id, HttpStatus.NO_CONTENT);
+    }
+
 }

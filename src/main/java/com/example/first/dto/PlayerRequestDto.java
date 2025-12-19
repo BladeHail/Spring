@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlayerRequestDto {
+    private long id;
     private String name; // 이름
 
     private String body; // 신체정보 예: "175cm 64kg"

@@ -51,6 +51,7 @@ public class MatchService {
         match.setTeamA(dto.getTeamA());
         match.setTeamB(dto.getTeamB());
         match.setMatchDate(dto.getMatchDate());
+        if(!dto.getDescription().isEmpty()) match.setDescription(dto.getDescription());
         match.setPredictionOpen(true);
         matchRepository.save(match);
         log.info("경기 생성: {} vs {}", dto.getTeamA(), dto.getTeamB());
