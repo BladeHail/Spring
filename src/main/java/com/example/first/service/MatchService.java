@@ -44,9 +44,16 @@ public class MatchService {
 
     // 4. 경기 생성 (관리자용)
     @Transactional
-    public Match createMatch(Match match) {
-        log.info("경기 생성: {} vs {}", match.getTeamA(), match.getTeamB());
-        return matchRepository.save(match);
+    public void createMatch(MatchRequestDto dto) {
+        Match match = new Match();
+        if(dto.getTeamA().isEmpty()) dto.setTeamA("Home");
+        if(dto.getTeamB().isEmpty()) dto.setTeamB("Away");
+        match.setTeamA(dto.getTeamA());
+        match.setTeamB(dto.getTeamB());
+        match.setMatchDate(dto.getMatchDate());
+        match.setPredictionOpen(true);
+        matchRepository.save(match);
+        log.info("경기 생성: {} vs {}", dto.getTeamA(), dto.getTeamB());
     }
 
     // 5. 경기 결과 입력 및 마감 (관리자용)

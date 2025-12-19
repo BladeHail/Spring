@@ -1,9 +1,7 @@
 package com.example.first.controller;
 
-import com.example.first.dto.MatchRequestDto;
 import com.example.first.dto.PredictionRequestDto;
 import com.example.first.dto.PredictionResponseDto;
-import com.example.first.entity.User;
 import com.example.first.security.oauth2.PrincipalDetails;
 import com.example.first.service.MatchService;
 import com.example.first.service.PredictionService;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -42,22 +39,6 @@ public class PredictionController {
         //서비스 메서드만 호출
         return new ResponseEntity<>(matchService.getAllMatches(userId), HttpStatus.OK);
     }
-    @PutMapping("/match")
-    public ResponseEntity<?> modifyMatch(Authentication auth,
-                                         @RequestBody MatchRequestDto requestDto
-                                         ) {
-        if(auth == null || !auth.isAuthenticated()) {
-            return new ResponseEntity<>("NO", HttpStatus.UNAUTHORIZED);
-        }
-        String username = auth.getName();
-        Optional<User> user = userService.findUserByUsername(username);
-        if(user.isPresent() && user.get().isAdmin()) {
-            matchService.updateMatch(requestDto);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>("?", HttpStatus.UNAUTHORIZED);
-    }
-    // 결산 기능 추가하기(포인트 변동)
 
     // 2. 내 예측 내역
     @GetMapping("/my")

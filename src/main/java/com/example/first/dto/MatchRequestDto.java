@@ -14,4 +14,7 @@ public class MatchRequestDto {
     private boolean predictionOpen;
     private MatchResult result;
     private LocalDateTime matchDate;
+    private String teamA;
+    private String teamB;
+    private String description;
 }

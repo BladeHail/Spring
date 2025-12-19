@@ -94,8 +94,14 @@ public class AuthService {
 
     public AuthResponse login(AuthRequest request) {
         try {
+            //Where's password handling? So I added one
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            boolean match = passwordEncoder.matches(request.getPassword(), user.getPassword()); //Requires implicit method since it's hashed
+            if(user.getProvider().toString().equals("LOCAL") && !match) { //Only for local users(OAuth2 don't send us anything about password)
+                log.warn("NO");
+                return null;
+            }
             String token = jwtTokenProvider.createToken(
                     user.getUsername(),
                     user.getTokenVersion()

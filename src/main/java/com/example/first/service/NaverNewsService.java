@@ -60,7 +60,7 @@ public class NaverNewsService {
             List<String> seenTitles = new ArrayList<>();
 
             JaccardSimilarity similarity = new JaccardSimilarity();
-            double THRESHOLD = 0.6; // 이후 직접 조정
+            double THRESHOLD = 0.55; // 이후 직접 조정
 
             int id = 0;
 
