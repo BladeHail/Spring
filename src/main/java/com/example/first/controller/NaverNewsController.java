@@ -1,6 +1,6 @@
 package com.example.first.controller;
 
-import com.example.first.dto.NaverNewsDto;
+import com.example.first.dto.response.NaverNewsDto;
 import com.example.first.service.NaverNewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

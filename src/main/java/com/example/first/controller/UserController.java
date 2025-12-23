@@ -1,7 +1,7 @@
 package com.example.first.controller;
 
-import com.example.first.dto.UserRequestDto;
-import com.example.first.dto.UserResponseDto;
+import com.example.first.dto.request.UserRequestDto;
+import com.example.first.dto.response.UserResponseDto;
 import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
 import com.example.first.service.UserService;

@@ -1,6 +1,6 @@
 package com.example.first.controller;
 
-import com.example.first.dto.LiveYtDto;
+import com.example.first.dto.response.LiveYtDto;
 import com.example.first.service.LiveYtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,7 +1,7 @@
 package com.example.first.controller;
 
-import com.example.first.dto.AuthRequest;
-import com.example.first.dto.AuthResponse;
+import com.example.first.dto.request.AuthRequest;
+import com.example.first.dto.response.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;

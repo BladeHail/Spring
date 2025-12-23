@@ -1,6 +1,6 @@
 package com.example.first.service;
 
-import com.example.first.dto.LiveYtDto;
+import com.example.first.dto.response.LiveYtDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;

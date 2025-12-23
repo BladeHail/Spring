@@ -1,13 +1,13 @@
 package com.example.first.service;
 
-import com.example.first.dto.AuthRequest;
-import com.example.first.dto.AuthResponse;
+import com.example.first.dto.request.AuthRequest;
+import com.example.first.dto.response.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
 import com.example.first.security.oauth2.GoogleUserInfo;
-import com.example.first.dto.GoogleTokenResponse;
+import com.example.first.dto.response.GoogleTokenResponse;
 import com.example.first.security.oauth2.KakaoUserInfo;
 import com.example.first.security.oauth2.NaverUserInfo;
 import lombok.extern.slf4j.Slf4j;

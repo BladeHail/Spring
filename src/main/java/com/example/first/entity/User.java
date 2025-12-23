@@ -1,6 +1,6 @@
 package com.example.first.entity;
 
-import com.example.first.dto.UserResponseDto;
+import com.example.first.dto.response.UserResponseDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

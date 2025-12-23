@@ -1,7 +1,7 @@
 package com.example.first.controller;
 
 
-import com.example.first.dto.MatchRequestDto;
+import com.example.first.dto.request.MatchRequestDto;
 import com.example.first.entity.User;
 import com.example.first.service.MatchService;
 import com.example.first.service.UserService;

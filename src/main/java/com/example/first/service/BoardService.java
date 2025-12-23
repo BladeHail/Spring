@@ -1,7 +1,7 @@
 package com.example.first.service;
 
 import com.example.first.dto.BoardDto;
-import com.example.first.dto.BoardRequestDto;
+import com.example.first.dto.request.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
 import com.example.first.entity.PlayerEntity;
 import com.example.first.exception.BoardNotFoundException;

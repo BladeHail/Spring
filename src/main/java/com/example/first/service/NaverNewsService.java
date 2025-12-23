@@ -1,6 +1,6 @@
 package com.example.first.service;
 
-import com.example.first.dto.NaverNewsDto;
+import com.example.first.dto.response.NaverNewsDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.similarity.JaccardSimilarity;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,7 +1,7 @@
 package com.example.first.service;
 
-import com.example.first.dto.MatchRequestDto;
-import com.example.first.dto.MatchResponseDto;
+import com.example.first.dto.request.MatchRequestDto;
+import com.example.first.dto.response.MatchResponseDto;
 import com.example.first.entity.Match;
 import com.example.first.entity.MatchResult;
 import com.example.first.entity.Prediction;

@@ -1,7 +1,7 @@
 package com.example.first.controller;
 
-import com.example.first.dto.PredictionRequestDto;
-import com.example.first.dto.PredictionResponseDto;
+import com.example.first.dto.request.PredictionRequestDto;
+import com.example.first.dto.response.PredictionResponseDto;
 import com.example.first.security.oauth2.PrincipalDetails;
 import com.example.first.service.MatchService;
 import com.example.first.service.PredictionService;
