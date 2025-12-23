@@ -13,59 +13,103 @@ import org.springframework.web.client.RestClient;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class GeminiService {
-    private final RestClient.Builder restClientBuilder;
 
     @Value("${gemini.api.url}")
     private String apiUrl;
 
     @Value("${gemini.api.key}")
     private String apiKey;
+    static final String PROCESSING = "__PROCESSING__";
+    Map<String, String> summaryCache = new ConcurrentHashMap<>();
+
 
     //요청 내용 만들기
     public String getSummary(String newsUrl) {
-        String newsBody = getNewsFromUrl(newsUrl);
-        if(newsBody.isEmpty()) {
-            System.out.println("뉴스 url에서 뉴스 전문을 가져올 수 없었습니다.");
-            return "요약이 없습니다";
+
+        // [0] 캐시 먼저 확인
+        String cached = summaryCache.get(newsUrl);
+
+        if (cached != null) {
+            if (PROCESSING.equals(cached)) {
+                return "요약 중입니다. 잠시 후 다시 시도해주세요.";
+            }
+            return cached; // 이미 요약 완료
         }
-        // [1] 프롬프트 만들기
-        String prompt = "다음 링크의 뉴스를 3줄로 요약해줘: \n" + newsBody;
 
-        // [2] DTO 만들기
-        GeminiDto.Request request = GeminiDto.Request.builder()
-                .contents(List.of(
-                        GeminiDto.Content.builder()
-                                .parts(List.of(GeminiDto.Part.builder().text(prompt).build()))
-                                .build()
-                ))
-                .build();
+        // [1] 최초 요청자만 PROCESSING 등록
+        String prev = summaryCache.putIfAbsent(newsUrl, PROCESSING);
+        if (prev != null) {
+            // 거의 동시에 들어온 요청
+            if (PROCESSING.equals(prev)) {
+                return "요약 중입니다. 잠시 후 다시 시도해주세요.";
+            }
+            return prev;
+        }
 
-        // [3] URL 강제 조립 (핵심)
-        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
+        try {
+            // [2] 뉴스 본문 가져오기
+            String newsBody = getNewsFromUrl(newsUrl);
+            if (newsBody.isEmpty()) {
+                summaryCache.remove(newsUrl);
+                return "요약이 없습니다";
+            }
 
-        // 디버깅용 로그 (콘솔을 확인)
-        System.out.println("요청 URL: " + finalUrl);
+            // [3] 프롬프트
+            String prompt =
+                    "다음 링크의 뉴스를 3줄로 요약해줘. " +
+                            "각 문장의 앞에는 번호가(1. 2. 3.) 붙어있어야 하고, " +
+                            "각 문장 사이에는 간격을 두어야 해.\n" +
+                            newsBody;
 
-        // [4] API 호출
-        // RestClient.create()를 써서 아주 깨끗한 클라이언트를 새로 만듬
-        RestClient tempClient = RestClient.create();
+            GeminiDto.Request request = GeminiDto.Request.builder()
+                    .contents(List.of(
+                            GeminiDto.Content.builder()
+                                    .parts(List.of(
+                                            GeminiDto.Part.builder()
+                                                    .text(prompt)
+                                                    .build()
+                                    ))
+                                    .build()
+                    ))
+                    .build();
 
-        GeminiDto.Response response = tempClient.post()
-                .uri(URI.create(finalUrl)) // ★ URI.create()로 넣으면 스프링이 인코딩을 안 합니다.
-                .body(request)
-                .retrieve()
-                .body(GeminiDto.Response.class);
+            String finalUrl =
+                    "https://generativelanguage.googleapis.com/v1beta/models/" +
+                            "gemini-2.5-flash-preview-09-2025:generateContent?key=" + apiKey;
 
-        // [5] 결과 반환
-        return response.getCandidates().get(0)
-                .getContent()
-                .getParts().get(0)
-                .getText();
+            RestClient client = RestClient.create();
+
+            GeminiDto.Response response = client.post()
+                    .uri(URI.create(finalUrl))
+                    .body(request)
+                    .retrieve()
+                    .body(GeminiDto.Response.class);
+
+            String summary = null;
+            if (response != null) {
+                summary = response.getCandidates().getFirst()
+                        .getContent()
+                        .getParts().getFirst()
+                        .getText();
+            }
+
+            // [4] 캐시에 최종 저장
+            summaryCache.put(newsUrl, summary);
+            return summary;
+
+        } catch (Exception e) {
+            // 실패 시 캐시 정리 (다시 시도 가능)
+            summaryCache.remove(newsUrl);
+            return "요약 중 오류가 발생했습니다.";
+        }
     }
+
     public String getNewsFromUrl(String url) {
         try {
             Document doc = Jsoup.connect(url)
