@@ -55,11 +55,8 @@ public class PostService {
     }
 
     private void validateLiveBlock(LiveBlock block) {
-        if (!"youtube".equals(block.getProvider())) {
-            throw new IllegalArgumentException("지원하지 않는 provider");
-        }
 
-        if (block.getResourceId() == null || block.getResourceId().isBlank()) {
+        if (block.getVideoId() == null || block.getVideoId().isBlank()) {
             throw new IllegalArgumentException("videoId가 비어 있습니다");
         }
 

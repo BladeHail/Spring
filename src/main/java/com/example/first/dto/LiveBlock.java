@@ -12,7 +12,6 @@ public class LiveBlock implements Block {
 
     private String id;
     private final String type = "live";
-    private String provider;
-    private String resourceId;
+    private String videoId;
 }
 
