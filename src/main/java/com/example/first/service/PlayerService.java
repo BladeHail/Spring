@@ -22,7 +22,7 @@ public class PlayerService {
     }
 
     public List<PlayerResponseDto> getAllPlayers() {
-        List<PlayerEntity> list = repository.findAll();
+        List<PlayerEntity> list = repository.findAllByDeletedFalse();
         List<PlayerResponseDto> players = new ArrayList<>();
         list.forEach(e -> {
             PlayerResponseDto dto = PlayerResponseDto.from(e);
@@ -32,7 +32,7 @@ public class PlayerService {
     }
 
     public PlayerEntity getPlayEntity(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findByIdAndDeletedFalse(id).orElse(null);
     }
 
     public Long createPlayer(PlayerRequestDto dto, MultipartFile file) {

@@ -19,6 +19,17 @@ import java.util.Optional;
 public class MatchController {
     private final UserService userService;
     private final MatchService matchService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getMatch(
+            Authentication auth,
+            @PathVariable Long id
+    ){
+        if(auth == null || !auth.isAuthenticated()){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(matchService.getMatchById(id), HttpStatus.OK);
+    }
     @PostMapping
     public ResponseEntity<?> newMatch(Authentication auth,
                                          @RequestBody MatchRequestDto requestDto

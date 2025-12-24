@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TextBlock.class, name = "text"),
         @JsonSubTypes.Type(value = LiveBlock.class, name = "live"),
-        @JsonSubTypes.Type(value = PollBlock.class, name = "poll")
+        @JsonSubTypes.Type(value = PollBlock.class, name = "prediction")
 })
 public interface Block {
 

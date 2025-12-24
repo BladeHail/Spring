@@ -4,19 +4,19 @@ import com.example.first.dto.PollBlock;
 import com.example.first.entity.Block;
 import com.example.first.entity.Post;
 import com.example.first.repository.PostRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
+    private final MatchService matchService;
 
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
 
     @Transactional
     public Post create(Long authorId, String title, List<Block> blocks) {
@@ -40,10 +40,10 @@ public class PostService {
                     validateLiveBlock(live);
                 }
 
-                case "poll" -> {
+                case "prediction" -> {
                     PollBlock poll = (PollBlock) block;
-                    if (poll.getOptions() == null || poll.getOptions().size() < 2) {
-                        throw new IllegalArgumentException("투표 옵션은 2개 이상이어야 합니다");
+                    if(!matchService.getMatchById(poll.getMatchId()).isPredictionOpen()){
+                        throw new IllegalArgumentException("It's been so long...");
                     }
                 }
 
