@@ -1,6 +1,7 @@
 package com.example.first.service;
 import com.example.first.dto.LiveBlock;
 import com.example.first.dto.PollBlock;
+import com.example.first.dto.response.LiveYtDto;
 import com.example.first.entity.Block;
 import com.example.first.entity.Post;
 import com.example.first.repository.PostRepository;
@@ -16,6 +17,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MatchService matchService;
+    private final LiveYtService liveYtService;
 
 
     @Transactional
@@ -37,7 +39,14 @@ public class PostService {
 
                 case "live" -> {
                     LiveBlock live = (LiveBlock) block;
-                    validateLiveBlock(live);
+                    try {
+                        validateLiveBlock(live);
+                    } catch(IllegalArgumentException ex) {
+                        System.out.println(ex.getMessage());
+                        throw ex;
+                    } catch(RuntimeException e) {
+                        System.out.println("Done");
+                    }
                 }
 
                 case "prediction" -> {
@@ -59,8 +68,13 @@ public class PostService {
         if (block.getVideoId() == null || block.getVideoId().isBlank()) {
             throw new IllegalArgumentException("videoId가 비어 있습니다");
         }
-
-        // TODO: 필요 시 여기서 “서버 허용 videoId” 검사
+        String videoId = block.getVideoId();
+        liveYtService.getLiveVideos().forEach(liveYt -> {
+            if(liveYt.getVideoId().equals(videoId)) {
+                throw new RuntimeException("됐는데 일단 처리");
+            }
+        });
+        throw new IllegalArgumentException("허가되지 않은 videoId");
     }
 }
 

@@ -1,12 +1,18 @@
 package com.example.first.controller;
 
 import com.example.first.dto.request.CreatePostRequestDto;
+import com.example.first.dto.response.PostListDto;
 import com.example.first.entity.Post;
+import com.example.first.entity.User;
 import com.example.first.repository.PostRepository;
 import com.example.first.service.PostService;
+import com.example.first.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -18,11 +24,22 @@ public class PostController {
 
     private final PostService postService;
     private final PostRepository postRepository;
-
+    private final UserService userService;
+    @GetMapping
+    public Page<PostListDto> list(Pageable pageable) {
+        return postRepository.findPostList(pageable);
+    }
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CreatePostRequestDto dto) {
+    public ResponseEntity<?> create(Authentication auth, @RequestBody CreatePostRequestDto dto) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Optional<User> author = userService.findUserByUsername(auth.getName());
+        if(author.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         Post post = postService.create(
-                1L, // 임시 authorId
+                author.get().getId(),
                 dto.getTitle(),
                 dto.getBlocks()
         );

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ public class LiveYtController {
         response.put("isLive", !videos.isEmpty());
         // videos: 영상 리스트 전체 ([{title:..., videoId:...}, ...])
         response.put("videos", videos);
-
         return response;
     }
 }

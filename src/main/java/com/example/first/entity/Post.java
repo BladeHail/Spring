@@ -29,11 +29,14 @@ public class Post {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private boolean deleted;
+
     public Post(Long authorId, String title, List<Block> blocks) {
         this.authorId = authorId;
         this.title = title;
         this.blocks = blocks;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
+        this.deleted = false;
     }
 }
