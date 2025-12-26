@@ -197,7 +197,8 @@ public class BoardController {
         BoardEntity board = boardService.findById(id);
         if(!user.get().getUsername().equals(board.getAuthor())) {
             if(!user.get().isAdmin()) {
-                System.out.println("Not your business:" + user.get().getUsername() + board.getAuthor());
+                System.out.println("Not your business");
+                return true;
             }
             else if(!allowAdmin) {
                 System.out.println("Even if you are an admin, it's not your business");
