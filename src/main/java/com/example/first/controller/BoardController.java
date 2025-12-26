@@ -63,13 +63,14 @@ public class BoardController {
                 .map(this::toDto);
     }
 
-    // 게시글 상세 조회 (조회수 증가)
+    // 게시글 수정을 위한 조회 엔드포인트
     @GetMapping("/{id}")
-    public BoardDto detail(Authentication auth,
+    public ResponseEntity<?> detail(Authentication auth,
                            @PathVariable Long id
     ) {
-        if(auth == null || !auth.isAuthenticated()) return null;
-        return toDto(boardService.findById(id));
+        if(notYourBusiness(auth, id, false)) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        //admin 전용 옵션도 추가할 필요 있음
+        return new ResponseEntity<>(toDto(boardService.findById(id)), HttpStatus.OK);
     }
 
     @GetMapping("/my")
@@ -86,10 +87,10 @@ public class BoardController {
     }
     // 게시글 수정
     @PutMapping("/{id}")
-    public ResponseEntity<String> update(Authentication auth,
+    public ResponseEntity<?> update(Authentication auth,
                                          @PathVariable Long id,
                                          @RequestBody BoardRequestDto request) {
-        if (tryAuthAndSetName(auth, request)) return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+        if (notYourBusiness(auth, id, false)) return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
         BoardEntity updated = new BoardEntity(
                 request.getTitle(),
                 request.getContent(),
@@ -105,7 +106,7 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(Authentication auth, @PathVariable Long id) {
         //Below is dangerous since it does not compare User, but the String Author. May there be better ways...
-        if (boardService.findById(id) == null || !tryAuthAndGetName(auth).equals(boardService.findById(id).getAuthor())) {
+        if (notYourBusiness(auth, id, true)) {
             return new ResponseEntity<>("올바르지 않은 요청입니다.", HttpStatus.BAD_REQUEST);
         } //bad request for all, it's on my purpose
         boardService.delete(id);
@@ -123,6 +124,7 @@ public class BoardController {
                 .media(board.getMedia())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
+                .playerId(board.getPlayer().getId())
                 .build();
     }
 
@@ -182,17 +184,26 @@ public class BoardController {
         request.setAuthor(displayAuthor);
         return false;
     }
-    private String tryAuthAndGetName(Authentication auth) {
+    private boolean notYourBusiness(Authentication auth, Long id, boolean allowAdmin) {
         if(auth == null || !auth.isAuthenticated()) {
-            return null;
+            System.out.println("Not authenticated");
+            return true;
         }
-        String currentUsername = auth.getName();
-        User user = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
-        String displayAuthor = user.getEmail();
-        if (displayAuthor == null || displayAuthor.isEmpty()) {
-            displayAuthor = user.getUsername();
+        Optional<User> user = userRepository.findByUsername(auth.getName());
+        if(user.isEmpty()) {
+            System.out.println("No such user");
+            return true;
         }
-        return displayAuthor;
+        BoardEntity board = boardService.findById(id);
+        if(!user.get().getUsername().equals(board.getAuthor()) && !user.get().isAdmin() && !allowAdmin) {
+            System.out.println("Even if you are an admin, it's not your business");
+            return true;
+        }
+        else if(!user.get().isAdmin()) {
+            System.out.println("Not your business");
+            return true;
+        }
+        return false;
+        //return !(user.get().getUsername().equals(board.getAuthor()) || user.get().isAdmin());
     }
 }

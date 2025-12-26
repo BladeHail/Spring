@@ -1,5 +1,6 @@
 package com.example.first.entity;
 
+import com.example.first.dto.response.PostResponseDto;
 import com.example.first.utils.BlockListConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -38,5 +39,31 @@ public class Post {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
         this.deleted = false;
+    }
+
+    public Post(Long id, Long authorId, String title, List<Block> blocks, LocalDateTime createdAt, boolean deleted) {
+        this.id = id;
+        this.authorId = authorId;
+        this.title = title;
+        this.blocks = blocks;
+        this.createdAt = createdAt;
+        this.updatedAt = LocalDateTime.now();
+        this.deleted = deleted;
+    }
+
+    public void Delete() {
+        this.deleted = true;
+    }
+
+    public PostResponseDto toDto() {
+        PostResponseDto dto = new PostResponseDto();
+        dto.setId(id);
+        dto.setAuthorId(authorId);
+        dto.setTitle(title);
+        dto.setBlocks(blocks);
+        dto.setCreatedAt(createdAt);
+        dto.setUpdatedAt(updatedAt);
+        dto.setDeleted(deleted);
+        return dto;
     }
 }

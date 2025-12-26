@@ -1,10 +1,11 @@
 package com.example.first.service;
 import com.example.first.dto.LiveBlock;
 import com.example.first.dto.PollBlock;
-import com.example.first.dto.response.LiveYtDto;
+import com.example.first.dto.VideoBlock;
 import com.example.first.entity.Block;
 import com.example.first.entity.Post;
 import com.example.first.repository.PostRepository;
+import com.example.first.repository.VideoRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MatchService matchService;
     private final LiveYtService liveYtService;
+    private final VideoRepository videoRepository;
 
 
     @Transactional
@@ -27,6 +29,25 @@ public class PostService {
 
         Post post = new Post(authorId, title, blocks);
         return postRepository.save(post);
+    }
+
+    @Transactional
+    public void update(Long postId, String title, List<Block> blocks) {
+        validateBlocks(blocks);
+        Post post = postRepository.findById(postId).orElse(null);
+        if(post != null) {
+            Post newPost = new Post(post.getId(), post.getAuthorId(), title, blocks, post.getCreatedAt(), false);
+            postRepository.save(newPost);
+        }
+    }
+
+    @Transactional
+    public void delete(Long postId) {
+        Post post = postRepository.findById(postId).orElse(null);
+        if(post != null) {
+            Post newPost = new Post(post.getId(), post.getAuthorId(), post.getTitle(), post.getBlocks(), post.getCreatedAt(), true);
+            postRepository.save(newPost);
+        }
     }
 
     private void validateBlocks(List<Block> blocks) {
@@ -53,6 +74,13 @@ public class PostService {
                     PollBlock poll = (PollBlock) block;
                     if(!matchService.getMatchById(poll.getMatchId()).isPredictionOpen()){
                         throw new IllegalArgumentException("It's been so long...");
+                    }
+                }
+
+                case "video" -> {
+                    VideoBlock videoBlock = (VideoBlock) block;
+                    if(!videoRepository.existsByVideoId(videoBlock.getVideoId())) {
+                        throw new IllegalArgumentException("Video not allowed");
                     }
                 }
 
