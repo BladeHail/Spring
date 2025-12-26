@@ -190,11 +190,11 @@ public class BoardController {
             return true;
         }
         Optional<User> user = userRepository.findByUsername(auth.getName());
-        if(user.isEmpty()) {
-            System.out.println("No such user");
+        BoardEntity board = boardService.findById(id);
+        if(user.isEmpty() || board == null) {
+            System.out.println("No such user or board");
             return true;
         }
-        BoardEntity board = boardService.findById(id);
         if(!user.get().getUsername().equals(board.getAuthor())) {
             if(!user.get().isAdmin()) {
                 System.out.println("Not your business");
