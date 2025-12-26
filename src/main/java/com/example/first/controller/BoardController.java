@@ -195,13 +195,15 @@ public class BoardController {
             return true;
         }
         BoardEntity board = boardService.findById(id);
-        if(!user.get().getUsername().equals(board.getAuthor()) && !user.get().isAdmin() && !allowAdmin) {
-            System.out.println("Even if you are an admin, it's not your business");
-            return true;
-        }
-        else if(!user.get().isAdmin()) {
-            System.out.println("Not your business");
-            return true;
+        if(!user.get().getUsername().equals(board.getAuthor())) {
+            if(!user.get().isAdmin()) {
+                System.out.println("Not your business");
+            }
+            else if(!allowAdmin) {
+                System.out.println("Even if you are an admin, it's not your business");
+                return true;
+            }
+            return false;
         }
         return false;
         //return !(user.get().getUsername().equals(board.getAuthor()) || user.get().isAdmin());

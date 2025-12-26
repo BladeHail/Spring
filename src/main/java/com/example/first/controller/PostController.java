@@ -124,13 +124,16 @@ public class PostController {
             System.out.println("No such user or post");
             return true;
         }
-        if(!Objects.equals(user.get().getId(), post.get().getAuthorId()) && user.get().isAdmin() && !allowAdmin) {
-            System.out.println("Even if you are an admin, it's not your business");
-            return true;
-        }
-        else if(!user.get().isAdmin()) {
-            System.out.println("Not your business");
-            return true;
+        if(!Objects.equals(user.get().getId(), post.get().getAuthorId())) {
+            if(!user.get().isAdmin()) {
+                System.out.println("Not your business");
+                return true;
+            }
+            else if(!allowAdmin) {
+                System.out.println("Even if you are an admin, it's not your business");
+                return true;
+            }
+            return false;
         }
         return false;
         //return !(Objects.equals(user.get().getId(), post.get().getAuthorId()) || (user.get().isAdmin() && allowAdmin));
