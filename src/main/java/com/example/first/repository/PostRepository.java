@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
@@ -25,6 +27,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         order by p.createdAt desc
     """)
     Page<PostListDto> findPostList(Pageable pageable);
+
+    List<Post> findAllByDeletedFalse();
 
     @Query("""
         select new com.example.first.dto.response.AdminPostListDto(

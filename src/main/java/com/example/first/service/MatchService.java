@@ -26,7 +26,7 @@ public class MatchService {
 
     // 1. 경기 목록 조회 (예측 가능한 경기들) - 메인 화면 등
     public List<MatchResponseDto> getPredictableMatches(Long userId) {
-        List<Match> matches = matchRepository.findByPredictionOpenTrueOrderByIdAsc();
+        List<Match> matches = matchRepository.findByPredictionOpenTrueOrderByIdDesc();
         return convertToDtoList(matches, userId);
     }
 
