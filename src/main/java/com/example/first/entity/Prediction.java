@@ -27,6 +27,9 @@ public class Prediction {
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
+    @Column(nullable = false)
+    private Long bet = 1L;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private MatchResult predictedResult;
@@ -42,11 +45,11 @@ public class Prediction {
     }
 
     public String getResultText() {
-        switch (predictedResult) {
-            case HOME_WIN: return match.getTeamA() + " 승리";
-            case AWAY_WIN: return match.getTeamB() + " 승리";
-            default: return "알 수 없음";
-        }
+        return switch (predictedResult) {
+            case HOME_WIN -> match.getTeamA() + " 승리";
+            case AWAY_WIN -> match.getTeamB() + " 승리";
+            default -> "알 수 없음";
+        };
     }
 }
 

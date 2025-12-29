@@ -1,20 +1,25 @@
 package com.example.first.controller;
 
 import com.example.first.dto.BoardDto;
-import com.example.first.dto.BoardRequestDto;
+import com.example.first.dto.request.BoardRequestDto;
 import com.example.first.entity.BoardEntity;
+import com.example.first.entity.User;
+import com.example.first.repository.UserRepository;
 import com.example.first.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
@@ -23,49 +28,89 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
-
+    private final UserRepository userRepository;
     // 게시글 등록
     @PostMapping("/players/{playerId}/boards")
-    public BoardDto create(
+    public ResponseEntity<String> create(
+            Authentication auth,
             @PathVariable Long playerId,
-            @Valid @RequestBody BoardRequestDto request) {
+            @Valid @RequestBody BoardRequestDto request
+    ){
+        if (tryAuthAndSetName(auth, request)) return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
         request.setPlayerId(playerId);
-        BoardEntity saved = boardService.create(request);
-        return toDto(saved);
+     BoardEntity saved = boardService.create(request);
+     if(toDto(saved) != null) {
+         return new ResponseEntity<>("입력되었습니다.", HttpStatus.CREATED);
+     }
+     return new ResponseEntity<>("정보 처리 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
     }
 
     // 특정 선수 응원글 조회 추가
     @GetMapping("/players/{playerId}/boards")
-    public List<BoardDto> listByPlayer(@PathVariable Long playerId) {
-        return boardService.findByPlayerId(playerId)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<BoardDto> listByPlayer(
+            @PathVariable Long playerId,
+            Pageable pageable
+    ) {
+        // Pageable → 기존 service 방식으로 변환
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        Sort sort = pageable.getSort();
+        // 정렬이 여러개일 가능성도 있으므로 첫 번째만 사용
+        Sort.Order order = sort.isEmpty() ? Sort.Order.desc("createdAt") : sort.iterator().next();
+        String sortBy = order.getProperty();
+        String direction = order.getDirection().isAscending() ? "asc" : "desc";
+        return boardService.findByPlayerIdPaged(playerId, page, size, sortBy, direction)
+                .map(this::toDto);
     }
 
-    // 게시글 상세 조회 (조회수 증가)
+    // 게시글 수정을 위한 조회 엔드포인트
     @GetMapping("/{id}")
-    public BoardDto detail(@PathVariable Long id) {
-        return toDto(boardService.findById(id));
+    public ResponseEntity<?> detail(Authentication auth,
+                           @PathVariable Long id
+    ) {
+        if(notYourBusiness(auth, id, false)) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        //admin 전용 옵션도 추가할 필요 있음
+        return new ResponseEntity<>(toDto(boardService.findById(id)), HttpStatus.OK);
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<List<BoardDto>> getMy(Authentication auth) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Optional<User> user = userRepository.findByUsername(auth.getName());
+        if(user.isPresent()) {
+            List<BoardDto> boarder = boardService.findMy(auth.getName());
+            return new ResponseEntity<>(boarder, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
     // 게시글 수정
     @PutMapping("/{id}")
-    public BoardDto update(@PathVariable Long id, @RequestBody BoardRequestDto request) {
+    public ResponseEntity<?> update(Authentication auth,
+                                         @PathVariable Long id,
+                                         @RequestBody BoardRequestDto request) {
+        if (notYourBusiness(auth, id, false)) return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
         BoardEntity updated = new BoardEntity(
                 request.getTitle(),
                 request.getContent(),
                 request.getAuthor(),
-                request.getMedia()
+                null
         );
-        return toDto(boardService.update(id, updated));
+        boardService.update(id, updated);
+        return new ResponseEntity<>("수정되었습니다.", HttpStatus.NO_CONTENT);
+        //return toDto(boardService.update(id, updated));
     }
 
     // 게시글 삭제
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(Authentication auth, @PathVariable Long id) {
+        //Below is dangerous since it does not compare User, but the String Author. May there be better ways...
+        if (notYourBusiness(auth, id, true)) {
+            return new ResponseEntity<>("올바르지 않은 요청입니다.", HttpStatus.BAD_REQUEST);
+        } //bad request for all, it's on my purpose
         boardService.delete(id);
-        return "삭제완료";
+        return new ResponseEntity<>("삭제되었습니다.", HttpStatus.NO_CONTENT);
     }
 
     // Entity -> Dto 변환
@@ -79,6 +124,7 @@ public class BoardController {
                 .media(board.getMedia())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
+                .playerId(board.getPlayer().getId())
                 .build();
     }
 
@@ -99,6 +145,7 @@ public class BoardController {
     }
 
     // 페이징 목록: /boards/page?page=0&size=10&sortBy=createdAt&dir=desc
+    @GetMapping("/page")
     public Page<BoardDto> pagedList(@RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "10")int size,
                                     @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -123,14 +170,42 @@ public class BoardController {
                 .collect(Collectors.toList());
         return new PageImpl<>(dtoList, entityPage.getPageable(), entityPage.getTotalElements());
     }
-
-    // 이미지 포함 게시글 등록: multipart/form-data
-    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public BoardDto createWithImage(@RequestParam String title,
-                                    @RequestParam String content,
-                                    @RequestParam String author,
-                                    @RequestParam(required = false) MultipartFile file) throws IOException {
-        BoardEntity saved = boardService.createWithImage(title, content, author, file);
-        return toDto(saved);
+    private boolean tryAuthAndSetName(Authentication auth, @RequestBody BoardRequestDto request) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return true;
+        }
+        String currentUsername = auth.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+        String displayAuthor = user.getEmail();
+        if (displayAuthor == null || displayAuthor.isEmpty()) {
+            displayAuthor = user.getUsername();
+        }
+        request.setAuthor(displayAuthor);
+        return false;
+    }
+    private boolean notYourBusiness(Authentication auth, Long id, boolean allowAdmin) {
+        if(auth == null || !auth.isAuthenticated()) {
+            System.out.println("Not authenticated");
+            return true;
+        }
+        Optional<User> user = userRepository.findByUsername(auth.getName());
+        BoardEntity board = boardService.findById(id);
+        if(user.isEmpty() || board == null) {
+            System.out.println("No such user or board");
+            return true;
+        }
+        if(!user.get().getUsername().equals(board.getAuthor())) {
+            if(!user.get().isAdmin()) {
+                System.out.println("Not your business");
+                return true;
+            }
+            else if(!allowAdmin) {
+                System.out.println("Even if you are an admin, it's not your business");
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 }

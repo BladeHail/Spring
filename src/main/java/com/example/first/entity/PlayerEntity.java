@@ -30,6 +30,9 @@ public class PlayerEntity {
     @Column(nullable = false)
     private String team;
 
+    @Column(nullable = false)
+    private boolean deleted;
+
     @Column
     private String media;
 
