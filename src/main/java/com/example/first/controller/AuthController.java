@@ -1,17 +1,20 @@
 package com.example.first.controller;
 
 import com.example.first.dto.request.AuthRequest;
+import com.example.first.dto.request.LogoutRequestDto;
 import com.example.first.dto.response.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
+import com.example.first.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
@@ -44,16 +48,20 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(Authentication authentication) {
+    public ResponseEntity<String> logout(@RequestBody LogoutRequestDto dto) { //Always unauthorized when Authentication is required, why?
         try {
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+            if (dto == null) {
+                return new ResponseEntity<>("올바르지 않은 유저 정보", HttpStatus.BAD_REQUEST);
             }
-            String username = authentication.getName();
+            String username = dto.getUsername();
+            Optional<User> user = userService.findUserByUsername(username);
+            if(user.isEmpty() || !dto.getToken().equals(user.get().getCurrentToken())){
+                log.warn("유저 {}에게 잘못된 로그아웃 요청", dto.getUsername());
+                return new ResponseEntity<>("허가되지 않은 로그아웃 요청", HttpStatus.UNAUTHORIZED);
+            }
             authService.logout(username);
-
             log.info("로그아웃 성공: {}", username);
-            return ResponseEntity.ok("로그아웃 성공");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             log.error("로그아웃 실패", e);
             return new ResponseEntity<>("로그아웃 처리 중 오류가 발생했습니다.",

@@ -1,5 +1,6 @@
 package com.example.first.entity;
 
+import com.example.first.dto.response.CommentResponseDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,5 +54,29 @@ public class Comment {
         this.parent = parent;
         this.author = author;
         this.content = content;
+    }
+
+    public CommentResponseDto toDto() {
+        if(this.parent == null) {
+            return CommentResponseDto.builder()
+                    .id(id)
+                    .author(author)
+                    .content(content)
+                    .postId(post.getId())
+                    .createdAt(createdAt)
+                    .updatedAt(updatedAt)
+                    .build();
+        }
+        else {
+            return CommentResponseDto.builder()
+                    .id(id)
+                    .author(author)
+                    .content(content)
+                    .postId(post.getId())
+                    .parentId(parent.getId())
+                    .createdAt(createdAt)
+                    .updatedAt(updatedAt)
+                    .build();
+        }
     }
 }

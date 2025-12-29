@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -60,11 +61,28 @@ public class CommentService {
         return toDto(saved);
     }
 
+    @Transactional
+    public CommentResponseDto update(Authentication auth, Long id, CommentRequestDto dto) {
+        if(auth == null || !auth.isAuthenticated()) {
+            throw new IllegalStateException("Unauthorized");
+        }
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new IllegalStateException("Comment not found"));
+        comment.setContent(dto.getContent());
+        comment.setUpdatedAt(LocalDateTime.now());
+        return commentRepository.save(comment).toDto();
+    }
+
     @Transactional(readOnly = true)
     public Page<CommentResponseDto> findByPost(Long postId, Pageable pageable) {
         return commentRepository
                 .findByPostIdAndDeletedFalse(postId, pageable)
                 .map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Comment findById(Long commentId) {
+        Optional<Comment> comment = commentRepository.findById(commentId);
+        return comment.orElseThrow(() -> new IllegalStateException("Comment not found"));
     }
 
     public void delete(Authentication auth, Long commentId) {
@@ -86,8 +104,8 @@ public class CommentService {
         if (!isOwner && !isAdmin) {
             throw new IllegalStateException("Not your business");
         }
-
         comment.setDeleted(true);
+        commentRepository.save(comment);
     }
 
     // ---- Entity → DTO ----

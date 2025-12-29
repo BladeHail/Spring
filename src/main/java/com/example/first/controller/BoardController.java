@@ -207,6 +207,5 @@ public class BoardController {
             return false;
         }
         return false;
-        //return !(user.get().getUsername().equals(board.getAuthor()) || user.get().isAdmin());
     }
 }

@@ -45,6 +45,9 @@ public class User {
     @Column(nullable = false)
     private Long tokenVersion = 0L;
 
+    @Column
+    private String currentToken;
+
     @Builder
     public User(String username, String password, String email, AuthProvider provider, String providerId, String profileImage, Long point) {
         this.username = username;
@@ -68,9 +71,12 @@ public class User {
         this.point = point;
     }
     public void logout() {
-        this.tokenVersion++;
+        this.currentToken = null;
     }
-    public void invalidateOAuthToken() {
+    public void newToken(String token) {
+        this.currentToken = token;
+    }
+    public void updateTokenVersion() {
         this.tokenVersion++;
     }
     public UserResponseDto toDto() {

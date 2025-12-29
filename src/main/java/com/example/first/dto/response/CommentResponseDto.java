@@ -1,5 +1,6 @@
 package com.example.first.dto.response;
 
+import com.example.first.entity.Comment;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,6 +13,7 @@ public class CommentResponseDto {
     private Long id;
     private Long postId;
     private Long parentId;
+    private String parentContent;
 
     private String author;
     private String content;

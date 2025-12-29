@@ -18,7 +18,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
@@ -97,15 +95,24 @@ public class AuthService {
             //Where's password handling? So I added one
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            log.info("Found user {}", user.getUsername());
             boolean match = passwordEncoder.matches(request.getPassword(), user.getPassword()); //Requires implicit method since it's hashed
             if(user.getProvider().toString().equals("LOCAL") && !match) { //Only for local users(OAuth2 don't send us anything about password)
                 log.warn("NO");
                 return null;
             }
+            if(user.getCurrentToken() != null) {
+                log.info("Attempting multiple login; Ignoring");
+                return null;
+            }
+            user.updateTokenVersion();
             String token = jwtTokenProvider.createToken(
                     user.getUsername(),
                     user.getTokenVersion()
             );
+            log.info("Created token {}", token);
+            user.newToken(token);
+            userRepository.save(user);
             log.info("로그인 성공: username={}, tokenVersion={}",
                     user.getUsername(),
                     user.getTokenVersion());
