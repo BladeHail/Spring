@@ -22,7 +22,9 @@ public class YoutubeVideo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** YouTube videoId */
+    /**
+     * YouTube videoId
+     */
     @Column(nullable = false, length = 20)
     private String videoId;
 
@@ -41,11 +43,15 @@ public class YoutubeVideo {
     @Column(nullable = false)
     private Instant publishedAt;
 
-    /** 최초 수집 시각, 필요는 없을 테지만 일단 사용 */
+    /**
+     * 최초 수집 시각, 필요는 없을 테지만 일단 사용
+     */
     @Column(nullable = false)
     private Instant collectedAt;
 
-    /** 어떤 키워드로 수집되었는지, 필요는 없을 테지만 일단 사용 */
+    /**
+     * 어떤 키워드로 수집되었는지, 필요는 없을 테지만 일단 사용
+     */
     @Column(nullable = false, length = 100)
     private String keyword;
 
@@ -70,5 +76,25 @@ public class YoutubeVideo {
         return video;
     }
 
+    public void updateFullInfo(
+            String videoId,
+            String title,
+            String thumbnailUrl,
+            String channelId,
+            String channelTitle,
+            Instant publishedAt,
+            String keyword
+    ) {
+        this.videoId = videoId;
+        this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.channelId = channelId;
+        this.channelTitle = channelTitle;
+        this.publishedAt = publishedAt;
+        this.keyword = keyword;
+    }
+    public void updateKeyword(String keyword) {
+        this.keyword = keyword;
+    }
 }
 
