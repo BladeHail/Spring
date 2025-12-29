@@ -28,7 +28,7 @@ public class LiveYtService {
     @Value("#{'${youtube.target.keywords}'.split(',')}")
     private String[] targetKeywords;
 
-    private final boolean liveEnabled = false; //Make it false when developing
+    private final boolean liveEnabled = true; //Make it false when developing
 
     private final RestTemplate ytTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
