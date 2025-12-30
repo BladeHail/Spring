@@ -85,15 +85,13 @@ public class PredictionService {
         Prediction saved = predictionRepository.save(prediction);
         log.info("예측 생성: userId={}, matchId={}, result={}",
                 userId, match.getId(), requestDto.getPredictedResult());
-        return saved;
-        Prediction savedPrediction = predictionRepository.save(prediction);
 
         // 5. [추가] 투표 직후 그래프 갱신을 위해 최신 퍼센트 계산
         long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
         long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
 
         // 6. 퍼센트 정보가 담긴 DTO 반환
-        return new ResponseEntity<>(PredictionResponseDto.fromEntity(savedPrediction, homeVotes, awayVotes), HttpStatus.OK);
+        return new ResponseEntity<>(PredictionResponseDto.fromEntity(saved, homeVotes, awayVotes), HttpStatus.OK);
     }
 
     /**

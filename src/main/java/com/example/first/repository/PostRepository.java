@@ -43,5 +43,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         order by p.createdAt desc
     """)
     Page<AdminPostListDto> forceFindPostList(Pageable pageable);
+
+    List<Post> findAllByAuthorIdAndDeletedFalse(Long id);
 }
 

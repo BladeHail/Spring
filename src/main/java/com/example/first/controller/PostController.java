@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,6 +33,22 @@ public class PostController {
     @GetMapping
     public Page<PostListDto> list(Pageable pageable) {
         return postRepository.findPostList(pageable);
+    }
+    @GetMapping("/my")
+    public ResponseEntity<?> myList(Authentication auth) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Optional<User> user = userService.findUserByUsername(auth.getName());
+        if(user.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        List<Post> posts = postRepository.findAllByAuthorIdAndDeletedFalse(user.get().getId());
+        List<PostResponseDto> dtos = new ArrayList<>();
+        for(Post post : posts) {
+            dtos.add(post.toDto());
+        }
+        return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
     @GetMapping("/admin")
     public Page<AdminPostListDto> forceList(Pageable pageable, Authentication auth) {
