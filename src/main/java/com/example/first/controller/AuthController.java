@@ -1,21 +1,20 @@
 package com.example.first.controller;
 
-import com.example.first.dto.AuthRequest;
-import com.example.first.dto.AuthResponse;
-import com.example.first.dto.OAthClientInfo;
+import com.example.first.dto.request.AuthRequest;
+import com.example.first.dto.request.LogoutRequestDto;
+import com.example.first.dto.response.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.service.AuthService;
+import com.example.first.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -24,6 +23,7 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
@@ -36,55 +36,38 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        log.info("Logging in");
         try {
-            String token = authService.login(request);
-
-            AuthResponse response = new AuthResponse(
-                    token,
-                    request.getUsername(),
-                    "로그인 성공 및 토큰 발급"
-            );
-
-            return ResponseEntity.ok(response);
+            AuthResponse res = authService.login(request);
+            if(res != null) return new ResponseEntity<>(res, HttpStatus.OK);
+            return new ResponseEntity<>("Not right user", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(
-                    new AuthResponse(null, request.getUsername(), "로그인 실패: 사용자 이름 또는 비밀번호 불일치"),
-                    HttpStatus.UNAUTHORIZED
-            );
+            return new ResponseEntity<>("NO", HttpStatus.BAD_REQUEST);
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(Authentication authentication) {
+    public ResponseEntity<String> logout(@RequestBody LogoutRequestDto dto) { //Always unauthorized when Authentication is required, why?
         try {
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
+            if (dto == null) {
+                return new ResponseEntity<>("올바르지 않은 유저 정보", HttpStatus.BAD_REQUEST);
             }
-            String username = authentication.getName();
+            String username = dto.getUsername();
+            Optional<User> user = userService.findUserByUsername(username);
+            if(user.isEmpty() || !dto.getToken().equals(user.get().getCurrentToken())){
+                log.warn("유저 {}에게 잘못된 로그아웃 요청", dto.getUsername());
+                return new ResponseEntity<>("허가되지 않은 로그아웃 요청", HttpStatus.UNAUTHORIZED);
+            }
             authService.logout(username);
-
             log.info("로그아웃 성공: {}", username);
-            return ResponseEntity.ok("로그아웃 성공");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             log.error("로그아웃 실패", e);
             return new ResponseEntity<>("로그아웃 처리 중 오류가 발생했습니다.",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    /*@GetMapping("/checkToken")
-    public ResponseEntity<String> checkToken(Authentication authentication) {
-        try {
-            if(authentication == null || !authentication.isAuthenticated()) {
-                return new ResponseEntity<>("인증되지 않은 사용자입니다.", HttpStatus.UNAUTHORIZED);
-            }
-            return ResponseEntity.ok("유효한 JWT");
-        } catch(Exception e) {
-            log.error("토큰 확인 실패", e);
-            return new ResponseEntity<>("토큰 확인 중 오류가 발생했습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }*/
     @GetMapping("/login/google")
     public void googleLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect(authService.getLoginDirection(AuthProvider.GOOGLE));
@@ -98,31 +81,6 @@ public class AuthController {
     @GetMapping("/login/naver")
     public void naverLogin(HttpServletResponse response) throws Exception {
         response.sendRedirect(authService.getLoginDirection(AuthProvider.NAVER));
-    }
-
-    @GetMapping("/client-info")
-    public List<OAthClientInfo> getClientInfo(){
-        List<OAthClientInfo> infoList = new ArrayList<>();
-
-        infoList.add(new OAthClientInfo(
-                "google",
-                "254999034916-61o7vuis0demhdt8jrb1210d92r8o8nn.apps.googleusercontent.com",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        infoList.add(new OAthClientInfo(
-                "kakao",
-                "454f615976d86f74a3fcaabb05dca4d0",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        infoList.add(new OAthClientInfo(
-                "naver",
-                "kDWLjaWlRgT9xuspYkRQ",
-                "http://localhost:8080/api/auth/register"
-        ));
-
-        return infoList;
     }
     // Handle OAuth
     @GetMapping("/oauth2/code/google")

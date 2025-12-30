@@ -1,13 +1,13 @@
 package com.example.first.service;
 
-import com.example.first.dto.AuthRequest;
-import com.example.first.dto.AuthResponse;
+import com.example.first.dto.request.AuthRequest;
+import com.example.first.dto.response.AuthResponse;
 import com.example.first.entity.AuthProvider;
 import com.example.first.entity.User;
 import com.example.first.repository.UserRepository;
 import com.example.first.security.jwt.JwtTokenProvider;
 import com.example.first.security.oauth2.GoogleUserInfo;
-import com.example.first.dto.GoogleTokenResponse;
+import com.example.first.dto.response.GoogleTokenResponse;
 import com.example.first.security.oauth2.KakaoUserInfo;
 import com.example.first.security.oauth2.NaverUserInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,7 +67,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
@@ -84,40 +79,47 @@ public class AuthService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("이미 존재하는 사용자 이름입니다.");
         }
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         User newUser = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .provider(AuthProvider.LOCAL)
+                .point(0L)
                 .build();
-
         return userRepository.save(newUser);
     }
 
-    public String login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
-            );
+            //Where's password handling? So I added one
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
+            log.info("Found user {}", user.getUsername());
+            boolean match = passwordEncoder.matches(request.getPassword(), user.getPassword()); //Requires implicit method since it's hashed
+            if(user.getProvider().toString().equals("LOCAL") && !match) { //Only for local users(OAuth2 don't send us anything about password)
+                log.warn("NO");
+                return null;
+            }
+            if(user.getCurrentToken() != null) {
+                log.info("Attempting multiple login; Ignoring");
+                return null;
+            }
+            user.updateTokenVersion();
             String token = jwtTokenProvider.createToken(
                     user.getUsername(),
                     user.getTokenVersion()
             );
+            log.info("Created token {}", token);
+            user.newToken(token);
+            userRepository.save(user);
             log.info("로그인 성공: username={}, tokenVersion={}",
                     user.getUsername(),
                     user.getTokenVersion());
-            return token;
+            return new AuthResponse(token, user.getUsername(), "로그인 성공", user.getPoint());
         } catch (AuthenticationException e) {
             log.warn("로그인 실패: {}", request.getUsername());
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            return null;
         }
     }
 
@@ -131,6 +133,19 @@ public class AuthService {
 
         log.info("로그아웃 성공: username={}, newTokenVersion={}",
                 username, user.getTokenVersion());
+    }
+
+    @Transactional
+    public User getUser(String name) {
+        return userRepository.findByUsername(name).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public void delete(String name) {
+        User user = userRepository.findByUsername(name).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.logout();
+        userRepository.delete(user);
+        log.info("유저 " + user.getUsername() + " 삭제");
     }
 
     @Transactional(readOnly = true)
@@ -184,7 +199,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "OAuth 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "OAuth 로그인 성공", user.getPoint());
     }
 
 
@@ -237,11 +252,12 @@ public class AuthService {
         User newUser = User.builder()
                 .username(googleUser.getEmail()) // 이메일을 username으로 사용
                 .email(googleUser.getEmail())
-                .password(passwordEncoder.encode((UUID.randomUUID().toString() + UUID.randomUUID().toString())))
+                .password(passwordEncoder.encode((UUID.randomUUID().toString() + UUID.randomUUID())))
                 .provider(AuthProvider.GOOGLE)
                 .providerId(googleUser.getSub()) // Google의 고유 ID
+                .point(0L)
                 .build();
-                    //password is null
+        //password is null
         User savedUser = userRepository.save(newUser);
         log.info("새로운 Google 사용자 생성: email={}, providerId={}",
                 googleUser.getEmail(), googleUser.getSub());
@@ -263,7 +279,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "Kakao 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Kakao 로그인 성공", user.getPoint());
     }
 
     private String getKakaoAccessToken(String code) {
@@ -320,6 +336,7 @@ public class AuthService {
                 .provider(AuthProvider.KAKAO)
                 .providerId(kakaoUser.getProviderId())
                 .profileImage(kakaoUser.getProfileImage())
+                .point(0L)
                 .build();
         return userRepository.save(newUser);
     }
@@ -338,7 +355,7 @@ public class AuthService {
         // 4. JWT 발급
         String jwt = jwtTokenProvider.createToken(user.getUsername(), user.getTokenVersion());
 
-        return new AuthResponse(jwt, user.getEmail(), "Naver 로그인 성공");
+        return new AuthResponse(jwt, user.getEmail(), "Naver 로그인 성공", user.getPoint());
     }
 
     private String getNaverAccessToken(String code, String state) {
@@ -383,6 +400,7 @@ public class AuthService {
                 .provider(AuthProvider.NAVER)
                 .providerId(naverUser.getProviderId())
                 .profileImage(naverUser.getProfileImage())
+                .point(0L)
                 .build();
         return userRepository.save(newUser);
     }
