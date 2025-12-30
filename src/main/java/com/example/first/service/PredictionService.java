@@ -60,10 +60,52 @@ public class  PredictionService {
                 .predictedAt(LocalDateTime.now())
                 .build();
 
+<<<<<<< Updated upstream
         Prediction saved = predictionRepository.save(prediction);
         log.info("예측 생성: userId={}, matchId={}, result={}",
                 userId, match.getId(), requestDto.getPredictedResult());
         return saved;
+=======
+        // 3. 올바른 결과값인지 검증
+        if (!isValidResult(requestDto.getPredictedResult()) || requestDto.getBet() <= 0) {
+            return new ResponseEntity<>("잘못된 예측", HttpStatus.BAD_REQUEST);
+        }
+
+        MatchResult newResult = MatchResult.valueOf(requestDto.getPredictedResult());
+        Long bet = Math.min(requestDto.getBet(), user.getPoint()); // 클라이언트 변조로 실제 포인트보다 많이 걸면 자동으로 조정
+        if(bet <= 0) {
+            return new ResponseEntity<>("포인트가 없습니다", HttpStatus.NOT_ACCEPTABLE);
+        }
+        // 4. 기존 예측 확인 (있으면 수정, 없으면 생성)
+        Optional<Prediction> existingPrediction = predictionRepository.findByUserIdAndMatch(userId, match);
+
+        Prediction prediction;
+        if (existingPrediction.isPresent()) {
+            prediction = existingPrediction.get();
+            prediction.setPredictedResult(newResult);
+            prediction.setBet(bet);
+            prediction.setPredictedAt(LocalDateTime.now()); // 수정 시간 업데이트
+            log.info("예측 수정: userId={}, matchId={}, result={}, bet={}", userId, match.getId(), newResult, bet);
+        } else {
+            prediction = Prediction.builder()
+                    .user(user)
+                    .match(match)
+                    .predictedResult(newResult)
+                    .predictedAt(LocalDateTime.now())
+                    .bet(bet)
+                    .build();
+            log.info("예측 생성: userId={}, matchId={}, result={}, bet={}", userId, match.getId(), newResult, bet);
+        }
+
+        Prediction savedPrediction = predictionRepository.save(prediction);
+
+        // 5. [추가] 투표 직후 그래프 갱신을 위해 최신 퍼센트 계산
+        long homeVotes = predictionRepository.countVotes(match.getId(), MatchResult.HOME_WIN);
+        long awayVotes = predictionRepository.countVotes(match.getId(), MatchResult.AWAY_WIN);
+
+        // 6. 퍼센트 정보가 담긴 DTO 반환
+        return new ResponseEntity<>(PredictionResponseDto.fromEntity(savedPrediction, homeVotes, awayVotes), HttpStatus.OK);
+>>>>>>> Stashed changes
     }
 
     public List<PredictionResponseDto> getUserPredictions(Long userId) {
