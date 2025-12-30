@@ -15,6 +15,7 @@ public class PostResponseDto {
     private Long id;
 
     private Long authorId;
+    private String authorName;
 
     private String title;
 

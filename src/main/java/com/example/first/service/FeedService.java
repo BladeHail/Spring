@@ -30,6 +30,7 @@ public class FeedService {
     private LiveYtService liveYtService;
     @Getter
     private List<FeedItemDto> feeds;
+    private List<FeedItemDto> blacklists;
 
     @PostConstruct
     public void init() {
@@ -39,6 +40,11 @@ public class FeedService {
     @Scheduled(fixedRate = 1000 * 60 * 2)
     public void update() {
         updateFeed(10);
+    }
+
+    public void removeFeed(FeedItemDto dto) {
+        feeds.remove(dto);
+        blacklists.add(dto);
     }
 
     public void updateFeed(int size) {
@@ -103,17 +109,18 @@ public class FeedService {
 
         temp.stream()
                 .sorted((a, b) -> Long.compare(b.getPriority(), a.getPriority()))
-                .limit(size)
-                .forEachOrdered(item -> result.add(
-                        new FeedItemDto(
-                                result.size(),
-                                item.getItemType(),
-                                item.getPublished(),
-                                item.getTitle(),
-                                item.getMetadata()
-                        )
-                ));
-        feeds = result;
+                .limit(size * 2L)
+                .forEachOrdered(item -> {
+                    FeedItemDto itemDto = new FeedItemDto(
+                            result.size(),
+                            item.getItemType(),
+                            item.getPublished(),
+                            item.getTitle(),
+                            item.getMetadata()
+                    );
+                    if(!blacklists.contains(itemDto)) result.add(itemDto);
+                });
+        feeds = result.stream().limit(size).toList();
     }
 
     protected long calculatePriority(LocalDateTime dateTime) {

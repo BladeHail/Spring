@@ -3,6 +3,7 @@ package com.example.first.controller;
 import com.example.first.dto.request.CreatePostRequestDto;
 import com.example.first.dto.response.AdminPostListDto;
 import com.example.first.dto.response.PostListDto;
+import com.example.first.dto.response.PostResponseDto;
 import com.example.first.entity.Post;
 import com.example.first.entity.User;
 import com.example.first.repository.PostRepository;
@@ -67,7 +68,10 @@ public class PostController {
     public ResponseEntity<?> get(@PathVariable Long id) {
         Optional<Post> post = postRepository.findById(id);
         if(post.isPresent() && !post.get().isDeleted()) {
-            return new ResponseEntity<>(post.get().toDto(), HttpStatus.OK);
+            PostResponseDto dto = post.get().toDto();
+            User author = userService.getUserById(post.get().getAuthorId());
+            dto.setAuthorName(author.getUsername());
+            return new ResponseEntity<>(dto, HttpStatus.OK);
         }
         return new ResponseEntity<>("post not found", HttpStatus.NOT_FOUND);
     }
@@ -82,7 +86,10 @@ public class PostController {
         }
         Optional<Post> post = postRepository.findById(id);
         if(post.isPresent()) {
-            return new ResponseEntity<>(post.get().toDto(), HttpStatus.OK);
+            PostResponseDto dto = post.get().toDto();
+            User author = userService.getUserById(post.get().getAuthorId());
+            dto.setAuthorName(author.getUsername());
+            return new ResponseEntity<>(dto, HttpStatus.OK);
         }
         return new ResponseEntity<>("post not found", HttpStatus.NOT_FOUND);
     }
@@ -92,7 +99,10 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Post post = postRepository.findById(id).get(); //Cannot be null since notYourBusiness tests first
-        return new ResponseEntity<>(post.toDto(), HttpStatus.OK);
+        PostResponseDto dto = post.toDto();
+        User user = userService.getUserById(post.getAuthorId());
+        dto.setAuthorName(user.getUsername());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

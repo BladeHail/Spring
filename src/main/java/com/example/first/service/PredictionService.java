@@ -82,7 +82,10 @@ public class PredictionService {
                     .build();
             log.info("예측 생성: userId={}, matchId={}, result={}, bet={}", userId, match.getId(), newResult, bet);
         }
-
+        Prediction saved = predictionRepository.save(prediction);
+        log.info("예측 생성: userId={}, matchId={}, result={}",
+                userId, match.getId(), requestDto.getPredictedResult());
+        return saved;
         Prediction savedPrediction = predictionRepository.save(prediction);
 
         // 5. [추가] 투표 직후 그래프 갱신을 위해 최신 퍼센트 계산

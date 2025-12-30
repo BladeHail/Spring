@@ -18,6 +18,9 @@ public class UserService {
         user.updateDisplayName(dto.getDisplay());
         userRepository.save(user);
     }
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow();
+    }
     public Optional<User> findUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
